@@ -1,0 +1,14 @@
+flask==3.0.0
+flask-cors==4.0.0
+requests==2.31.0
+numpy==1.26.4
+Pillow==10.3.0
+gunicorn==21.2.0
+
+# Blockchain (optional — app works in simulation mode without Ganache)
+# web3==6.11.3
+# py-solc-x==2.1.1
+
+# face_recognition requires cmake + dlib which fail on most free cloud hosts.
+# The app automatically falls back to SIMULATION mode if not installed.
+# To enable real face recognition on a VPS: pip install cmake dlib face_recognition

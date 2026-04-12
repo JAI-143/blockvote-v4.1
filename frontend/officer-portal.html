@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Officer Portal — BlockVote</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#05060a;--surface:#0c0e14;--surface2:#10121a;--border:#1a1d27;--border2:#242736;
+  --gold:#c9a84c;--gold2:#e8c97a;--gold-dim:rgba(201,168,76,0.08);
+  --text:#e8eaf0;--muted:#6b7080;--muted2:#3d4155;
+  --green:#2dd4a0;--red:#ef5858;--blue:#5b8dee}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh}
+
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:60px;border-bottom:1px solid var(--border);background:rgba(5,6,10,.97);position:sticky;top:0;z-index:100}
+.logo{font-size:.8rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;gap:.5rem}
+.logo-dot{width:7px;height:7px;background:var(--gold);border-radius:50%}
+.nav-r{display:flex;align-items:center;gap:.7rem}
+.chip{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .6rem;border-radius:2px;font-family:'JetBrains Mono',monospace}
+.chip-gold{background:var(--gold-dim);border:1px solid rgba(201,168,76,.2);color:var(--gold)}
+.chip-red{background:rgba(239,88,88,.08);border:1px solid rgba(239,88,88,.2);color:var(--red);display:none}
+.chip-red.show{display:block}
+.live-badge{display:flex;align-items:center;gap:.35rem;font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--green);font-family:'JetBrains Mono',monospace}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:bl 1.4s infinite}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.3}}
+.clock{font-size:.68rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.btn-logout{padding:.28rem .75rem;background:transparent;border:1px solid var(--border2);border-radius:3px;color:var(--muted);font-size:.65rem;cursor:pointer;font-family:'Syne',sans-serif;transition:.2s;letter-spacing:.05em;text-transform:uppercase}
+.btn-logout:hover{border-color:var(--red);color:var(--red)}
+
+#authGate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999}
+.gate-inner{text-align:center;max-width:320px;padding:2rem}
+.gate-title{font-size:1.3rem;font-weight:800;text-transform:uppercase;margin-bottom:.4rem}
+.gate-sub{font-size:.72rem;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:1.4rem;line-height:1.6}
+.gate-btn{display:inline-block;padding:.75rem 1.8rem;background:var(--gold);color:#000;border-radius:4px;font-weight:700;text-decoration:none;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase}
+
+.layout{display:grid;grid-template-columns:196px 1fr;min-height:calc(100vh - 60px)}
+.sidenav{background:var(--surface);border-right:1px solid var(--border);padding:1.2rem 0;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto}
+.sn-section{padding:0 1rem;margin-bottom:1.3rem}
+.sn-lbl{font-size:.52rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted2);margin-bottom:.45rem;padding:0 .4rem;font-family:'JetBrains Mono',monospace}
+.sn-item{display:block;width:100%;padding:.48rem .75rem;border-radius:4px;font-size:.76rem;font-weight:700;color:var(--muted);cursor:pointer;transition:.12s;border:none;background:transparent;font-family:'Syne',sans-serif;text-align:left}
+.sn-item:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.sn-item.active{color:var(--gold);background:var(--gold-dim)}
+
+.content{padding:1.8rem;overflow-y:auto}
+.tab-view{display:none}.tab-view.show{display:block}
+
+/* stat cards */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:1.8rem}
+.sc{background:var(--surface);padding:1.1rem 1.3rem;border-right:1px solid var(--border)}
+.sc:last-child{border-right:none}
+.sc-lbl{font-size:.55rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem;font-family:'JetBrains Mono',monospace}
+.sc-val{font-size:1.9rem;font-weight:800;letter-spacing:-.04em}
+.sc-val.gold{color:var(--gold)}.sc-val.green{color:var(--green)}.sc-val.red{color:var(--red)}
+.sc-sub{font-size:.58rem;color:var(--muted2);font-family:'JetBrains Mono',monospace;margin-top:.15rem}
+
+.sec-head{margin-bottom:1.1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.sec-eyebrow{font-size:.55rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-family:'JetBrains Mono',monospace}
+.sec-title{font-size:.98rem;font-weight:800;text-transform:uppercase;letter-spacing:-.01em;margin-top:.15rem}
+
+/* tables */
+.tbl{width:100%;border-collapse:collapse;font-size:.76rem;margin-bottom:1.5rem}
+.tbl th{padding:.5rem .9rem;font-size:.54rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);border-bottom:1px solid var(--border);text-align:left;font-family:'JetBrains Mono',monospace}
+.tbl td{padding:.7rem .9rem;border-bottom:1px solid var(--border);vertical-align:middle;font-family:'JetBrains Mono',monospace}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,.01)}
+
+.badge{font-size:.54rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.16rem .48rem;border-radius:2px;font-family:'JetBrains Mono',monospace}
+.b-voting{background:rgba(45,212,160,.1);color:var(--green);border:1px solid rgba(45,212,160,.2)}
+.b-reg{background:rgba(201,168,76,.1);color:var(--gold);border:1px solid rgba(201,168,76,.2)}
+.b-soon{background:rgba(107,112,128,.1);color:var(--muted);border:1px solid var(--border2)}
+.b-ended{background:rgba(239,88,88,.1);color:var(--red);border:1px solid rgba(239,88,88,.2)}
+.b-blue{background:rgba(91,141,238,.1);color:var(--blue);border:1px solid rgba(91,141,238,.2)}
+
+/* forms */
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1.4rem 1.7rem;margin-bottom:1.3rem}
+.form-card h3{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);margin-bottom:1.1rem;font-family:'JetBrains Mono',monospace}
+.field{margin-bottom:.85rem}
+.field label{display:block;font-size:.56rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:.32rem;font-family:'JetBrains Mono',monospace}
+.field input,.field select,.field textarea{width:100%;padding:.6rem .85rem;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-size:.8rem;font-family:'JetBrains Mono',monospace;outline:none;transition:border-color .2s}
+.field input:focus,.field select:focus{border-color:var(--gold)}
+.field select option{background:var(--bg)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.field-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+.field-note{font-size:.58rem;color:var(--muted);margin-top:.28rem;font-family:'JetBrains Mono',monospace;line-height:1.5}
+.btn-sub{padding:.55rem 1.3rem;background:var(--gold);color:#000;border:none;border-radius:4px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:background .2s;text-transform:uppercase;letter-spacing:.06em}
+.btn-sub:hover:not(:disabled){background:var(--gold2)}
+.btn-sub:disabled{opacity:.4;cursor:not-allowed}
+.btn-del{padding:.55rem 1.3rem;background:transparent;color:var(--red);border:1px solid rgba(239,88,88,.3);border-radius:4px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:.2s;text-transform:uppercase;letter-spacing:.06em}
+.btn-del:hover{background:rgba(239,88,88,.08)}
+.alert{padding:.58rem .9rem;border-radius:4px;font-size:.7rem;margin-top:.65rem;display:none;font-family:'JetBrains Mono',monospace;line-height:1.5}
+.alert.err{background:rgba(239,88,88,.08);border:1px solid rgba(239,88,88,.2);color:#fca5a5;display:block}
+.alert.ok{background:rgba(45,212,160,.08);border:1px solid rgba(45,212,160,.2);color:var(--green);display:block}
+
+.lock-box{background:rgba(239,88,88,.04);border:1px solid rgba(239,88,88,.15);border-radius:5px;padding:1rem 1.3rem;margin-bottom:1rem}
+.lock-box h4{font-size:.78rem;font-weight:700;color:var(--red);margin-bottom:.25rem}
+.lock-box p{font-size:.68rem;color:var(--muted);font-family:'JetBrains Mono',monospace;line-height:1.5}
+
+/* face zone */
+.fz{border:1px solid var(--border2);border-radius:5px;overflow:hidden;margin-bottom:.75rem}
+.fz-hdr{padding:.5rem .85rem;border-bottom:1px solid var(--border);font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.fz-cam{position:relative;height:155px;background:#000;display:flex;align-items:center;justify-content:center}
+.fz-cam video{width:100%;height:100%;object-fit:cover;display:none}
+.fz-cam video.on{display:block}
+.fz-cam img{width:100%;height:100%;object-fit:cover;display:none}
+.fz-cam img.on{display:block}
+.fz-ph{font-size:.7rem;color:var(--muted);font-family:'JetBrains Mono',monospace;text-align:center;padding:.5rem}
+.fz-actions{padding:.5rem .7rem;display:flex;gap:.45rem}
+.fz-btn{padding:.35rem .65rem;border:1px solid var(--border2);border-radius:3px;background:transparent;color:var(--muted);font-size:.62rem;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:.2s;text-transform:uppercase}
+.fz-btn:hover{border-color:var(--gold);color:var(--gold)}
+.fz-btn.pri{background:var(--gold);color:#000;border-color:var(--gold)}
+.fz-btn.pri:hover{background:var(--gold2)}
+.fz-btn:disabled{opacity:.32;cursor:not-allowed}
+
+/* chart */
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1.1rem 1.3rem;margin-bottom:1.3rem}
+.chart-lbl{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.85rem;font-family:'JetBrains Mono',monospace}
+.chart-h{position:relative;height:190px}
+
+/* election detail panel */
+.detail-panel{display:none;border:1px solid var(--border);border-radius:6px;margin-top:1.2rem;overflow:hidden}
+.detail-panel.show{display:block}
+.dp-head{padding:1rem 1.4rem;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.dp-title{font-size:.9rem;font-weight:700}
+.dp-close{background:none;border:none;color:var(--muted);font-size:.7rem;cursor:pointer;font-family:'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;transition:color .2s}
+.dp-close:hover{color:var(--red)}
+.dp-body{padding:1.4rem}
+.dp-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;border:1px solid var(--border);border-radius:5px;overflow:hidden;margin-bottom:1.2rem}
+.dps{background:var(--surface2);padding:.9rem 1rem;border-right:1px solid var(--border)}
+.dps:last-child{border-right:none}
+.dps-lbl{font-size:.52rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:.28rem;font-family:'JetBrains Mono',monospace}
+.dps-val{font-size:1.5rem;font-weight:800;letter-spacing:-.03em}
+.dps-val.gold{color:var(--gold)}.dps-val.green{color:var(--green)}
+.prog-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+.prog-row span{font-size:.65rem;font-family:'JetBrains Mono',monospace}
+.prog-out{height:5px;background:var(--border2);border-radius:999px;overflow:hidden;margin-bottom:1.2rem}
+.prog-in{height:100%;background:var(--gold);border-radius:999px;transition:width 1s}
+
+.voted-table-wrap{max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:5px}
+.voted-table-wrap table{width:100%;border-collapse:collapse;font-size:.7rem;font-family:'JetBrains Mono',monospace}
+.voted-table-wrap th{padding:.45rem .8rem;font-size:.52rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);border-bottom:1px solid var(--border);text-align:left;background:var(--surface);position:sticky;top:0}
+.voted-table-wrap td{padding:.55rem .8rem;border-bottom:1px solid var(--border)}
+.voted-table-wrap tr:last-child td{border-bottom:none}
+.voted-table-wrap tr:hover td{background:rgba(255,255,255,.01)}
+
+/* result bars */
+.result-bar{display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem}
+.rb-name{font-size:.72rem;font-weight:700;min-width:100px;font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rb-bar{flex:1;height:5px;background:var(--border2);border-radius:999px;overflow:hidden}
+.rb-fill{height:100%;background:var(--gold);border-radius:999px}
+.rb-count{font-size:.65rem;color:var(--muted);min-width:30px;text-align:right;font-family:'JetBrains Mono',monospace}
+
+/* wic card */
+.wic-card{border:1px solid var(--border);border-radius:5px;padding:.85rem 1.1rem;margin-bottom:.55rem;display:flex;align-items:center;justify-content:space-between;background:var(--surface)}
+.wic-name{font-size:.82rem;font-weight:700;margin-bottom:.15rem}
+.wic-meta{font-size:.62rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+
+/* elec row in elections tab */
+.elec-row{border:1px solid var(--border2);border-radius:5px;padding:.95rem 1.2rem;margin-bottom:.6rem;background:var(--surface);cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:space-between}
+.elec-row:hover{border-color:var(--gold);background:var(--gold-dim)}
+.er-name{font-size:.88rem;font-weight:700;margin-bottom:.15rem}
+.er-meta{font-size:.62rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.er-r{display:flex;align-items:center;gap:.6rem;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<div id="authGate">
+  <div class="gate-inner">
+    <div style="font-size:.58rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem;font-family:'JetBrains Mono',monospace">Officer Portal</div>
+    <div class="gate-title">Access Restricted</div>
+    <p class="gate-sub">Election Officer login required.</p>
+    <a href="/officer-login" class="gate-btn">Officer Login →</a>
+  </div>
+</div>
+
+<nav>
+  <div class="logo"><div class="logo-dot"></div>BlockVote</div>
+  <div class="nav-r">
+    <span class="chip chip-red" id="lockChip">🔒 Election Active</span>
+    <div class="live-badge"><div class="live-dot"></div>Live</div>
+    <div class="clock" id="clock">—</div>
+    <span class="chip chip-gold" id="officerChip">Officer</span>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<div class="layout">
+  <div class="sidenav">
+    <div class="sn-section">
+      <div class="sn-lbl">Dashboard</div>
+      <button class="sn-item active" onclick="show('overview')">Overview</button>
+      <button class="sn-item" onclick="show('elections')">Elections &amp; Results</button>
+    </div>
+    <div class="sn-section">
+      <div class="sn-lbl">Management</div>
+      <button class="sn-item" id="navVoters" onclick="show('voters')">Voters</button>
+      <button class="sn-item" onclick="show('wic')">Ward In-Charge</button>
+      <button class="sn-item" id="navInitElec" onclick="show('initElection')">Init Election</button>
+      <button class="sn-item" onclick="show('candidate')">Add Candidate</button>
+    </div>
+    <div class="sn-section">
+      <div class="sn-lbl">Security</div>
+      <button class="sn-item" onclick="show('fraud')">Fraud Log</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- OVERVIEW -->
+    <div class="tab-view show" id="tab-overview">
+      <div class="sec-head"><div><div class="sec-eyebrow">Dashboard</div><div class="sec-title">Overview</div></div></div>
+      <div class="stat-grid">
+        <div class="sc"><div class="sc-lbl">Registered Voters</div><div class="sc-val gold" id="stReg">—</div><div class="sc-sub">total in system</div></div>
+        <div class="sc"><div class="sc-lbl">Votes Cast</div><div class="sc-val green" id="stVoted">—</div><div class="sc-sub">all elections</div></div>
+        <div class="sc"><div class="sc-lbl">Participation</div><div class="sc-val" id="stPct">—</div><div class="sc-sub">% voted</div></div>
+        <div class="sc"><div class="sc-lbl">Fraud Alerts</div><div class="sc-val red" id="stFraud">—</div><div class="sc-sub">events flagged</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-lbl">Hourly votes (all elections)</div>
+        <div class="chart-h"><canvas id="hourlyChart"></canvas></div>
+      </div>
+      <div class="sec-head"><div><div class="sec-eyebrow">By Ward</div><div class="sec-title">Ward Participation</div></div></div>
+      <table class="tbl">
+        <thead><tr><th>Ward</th><th>Registered</th><th>Voted</th><th>Participation</th></tr></thead>
+        <tbody id="wardTable"><tr><td colspan="4" style="color:var(--muted2)">Loading…</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- ELECTIONS & RESULTS (merged) -->
+    <div class="tab-view" id="tab-elections">
+      <div class="sec-head"><div><div class="sec-eyebrow">Elections</div><div class="sec-title">Elections &amp; Results</div></div></div>
+      <p style="font-size:.72rem;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:1.2rem;line-height:1.6">Click any election to view live participation graph, voter activity log, and results (after polls close).</p>
+      <div id="elecRows"><div style="color:var(--muted2);font-family:'JetBrains Mono',monospace;font-size:.75rem">Loading…</div></div>
+
+      <!-- Inline detail panel -->
+      <div class="detail-panel" id="detailPanel">
+        <div class="dp-head">
+          <div class="dp-title" id="dpTitle">—</div>
+          <button class="dp-close" onclick="closeDetail()">✕ Close</button>
+        </div>
+        <div class="dp-body">
+          <div class="dp-stats">
+            <div class="dps"><div class="dps-lbl">Registered</div><div class="dps-val gold" id="dpTotal">—</div></div>
+            <div class="dps"><div class="dps-lbl">Voted</div><div class="dps-val green" id="dpVoted">—</div></div>
+            <div class="dps"><div class="dps-lbl">Turnout</div><div class="dps-val" id="dpPct">—</div></div>
+          </div>
+          <div class="prog-row"><span>Votes cast vs registered</span><span id="dpPctBar" style="color:var(--gold)">0%</span></div>
+          <div class="prog-out"><div class="prog-in" id="dpBar" style="width:0%"></div></div>
+
+          <div class="chart-card" style="margin-bottom:1.2rem">
+            <div class="chart-lbl">Hourly vote activity</div>
+            <div class="chart-h"><canvas id="dpChart"></canvas></div>
+          </div>
+
+          <!-- Results (only after ended) -->
+          <div id="dpResults" style="display:none;margin-bottom:1.2rem">
+            <div style="font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.7rem;font-family:'JetBrains Mono',monospace">Final Results</div>
+            <div id="dpResultBars"></div>
+          </div>
+
+          <!-- Voter activity log (officer only) -->
+          <div style="font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.6rem;font-family:'JetBrains Mono',monospace">Voters Who Voted — ID &amp; Time Only</div>
+          <div class="voted-table-wrap">
+            <table>
+              <thead><tr><th>Voter ID</th><th>Name</th><th>Ward</th><th>Voted At (IST)</th></tr></thead>
+              <tbody id="dpVoterLog"><tr><td colspan="4" style="color:var(--muted2)">No votes yet.</td></tr></tbody>
+            </table>
+          </div>
+          <div style="font-size:.62rem;color:var(--muted2);font-family:'JetBrains Mono',monospace;margin-top:.5rem">Candidate choice is never shown to protect voter anonymity.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VOTERS -->
+    <div class="tab-view" id="tab-voters">
+      <div class="sec-head"><div><div class="sec-eyebrow">Management</div><div class="sec-title">Voter Registry</div></div></div>
+      <div id="voterLockMsg"></div>
+      <div class="form-card" id="addVoterForm">
+        <h3>Add New Voter</h3>
+        <div class="field-row">
+          <div class="field"><label>Voter ID</label><input type="text" id="vId" placeholder="TN2024001"></div>
+          <div class="field"><label>Full Name</label><input type="text" id="vName" placeholder="Full legal name"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Date of Birth</label><input type="date" id="vDob"></div>
+          <div class="field"><label>Phone</label><input type="tel" id="vPhone" placeholder="+91 XXXXX XXXXX"></div>
+        </div>
+        <div class="field-row3">
+          <div class="field">
+            <label>State</label>
+            <select id="vState" onchange="onVState()">
+              <option value="">— State —</option>
+              <option value="Tamil Nadu">Tamil Nadu</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>District</label>
+            <select id="vDistrict" onchange="onVDist()">
+              <option value="">— District —</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Ward / College</label>
+            <select id="vWard">
+              <option value="">— Ward —</option>
+            </select>
+          </div>
+        </div>
+        <div class="fz">
+          <div class="fz-hdr">Voter Face Capture</div>
+          <div class="fz-cam">
+            <video id="vCamFeed" autoplay playsinline muted></video>
+            <img id="vPreview" alt="">
+            <div class="fz-ph" id="vCamPh"><span>Open camera to capture face</span></div>
+          </div>
+          <div class="fz-actions">
+            <button class="fz-btn" id="vBtnOpen" onclick="openVCam()">Open Cam</button>
+            <button class="fz-btn pri" id="vBtnCap" onclick="captureVFace()" disabled>Capture</button>
+            <button class="fz-btn" id="vBtnRetake" onclick="retakeVFace()" style="display:none">Retake</button>
+          </div>
+        </div>
+        <button class="btn-sub" id="btnAddVoter" onclick="addVoter()">Add Voter</button>
+        <div class="alert" id="voterAlert"></div>
+      </div>
+      <div class="sec-head" style="margin-top:1.3rem">
+        <div><div class="sec-eyebrow">Registry</div><div class="sec-title">Voter List</div></div>
+        <input type="text" id="voterSearch" placeholder="Search by name, ID, ward…" oninput="filterVoters()" style="padding:.48rem .75rem;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.72rem;outline:none;width:210px">
+      </div>
+      <table class="tbl">
+        <thead><tr><th>Voter ID</th><th>Name</th><th>Ward</th><th>District</th><th>Status</th><th>Registered</th><th>Action</th></tr></thead>
+        <tbody id="voterTable"><tr><td colspan="7" style="color:var(--muted2)">Loading…</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- WARD IN-CHARGE -->
+    <div class="tab-view" id="tab-wic">
+      <div class="sec-head"><div><div class="sec-eyebrow">Management</div><div class="sec-title">Ward In-Charge</div></div></div>
+      <div class="form-card">
+        <h3>Create WIC Account</h3>
+        <div class="field-row">
+          <div class="field"><label>WIC ID</label><input type="text" id="wicId" placeholder="WIC-TN-001"></div>
+          <div class="field"><label>Full Name</label><input type="text" id="wicName" placeholder="Full name"></div>
+        </div>
+        <div class="field-row3">
+          <div class="field">
+            <label>State</label>
+            <select id="wicState" onchange="onWICState()">
+              <option value="">— State —</option>
+              <option value="Tamil Nadu">Tamil Nadu</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>District</label>
+            <select id="wicDistrict" onchange="onWICDist()">
+              <option value="">— District —</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Ward / College</label>
+            <select id="wicWard">
+              <option value="">— Ward —</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Password</label><input type="password" id="wicPw" placeholder="Min. 6 characters"></div>
+        <div class="field-note">WIC can only login — not self-register. Their credentials give terminal access for their assigned ward only.</div>
+        <button class="btn-sub" onclick="createWIC()">Create WIC Account</button>
+        <div class="alert" id="wicAlert"></div>
+      </div>
+      <div class="sec-head"><div><div class="sec-eyebrow">Accounts</div><div class="sec-title">WIC List</div></div></div>
+      <div id="wicList"><div style="color:var(--muted2);font-family:'JetBrains Mono',monospace;font-size:.75rem">Loading…</div></div>
+    </div>
+
+    <!-- INIT ELECTION -->
+    <div class="tab-view" id="tab-initElection">
+      <div class="sec-head"><div><div class="sec-eyebrow">Management</div><div class="sec-title">Initialize Election</div></div></div>
+      <div class="form-card">
+        <h3>New Election</h3>
+        <div class="field"><label>Election Name</label><input type="text" id="eName" placeholder="e.g. SNSCT Student Council Election 2024"></div>
+        <div class="field-row">
+          <div class="field">
+            <label>Location Type</label>
+            <select id="eLocType" onchange="onElecLocType()">
+              <option value="">— Select —</option>
+              <option value="national">National</option>
+              <option value="state">State</option>
+              <option value="district">District</option>
+              <option value="ward">Ward / College</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Location Value</label>
+            <select id="eLocVal">
+              <option value="">— Select type first —</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row" id="eStateDist" style="display:none">
+          <div class="field"><label>State</label><input type="text" id="eState" value="Tamil Nadu" readonly style="opacity:.6"></div>
+          <div class="field"><label>District</label><input type="text" id="eDistrict" value="Coimbatore" readonly style="opacity:.6"></div>
+        </div>
+        <div style="font-size:.56rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);margin-bottom:.65rem;font-family:'JetBrains Mono',monospace">Registration Window (IST)</div>
+        <div class="field-row">
+          <div class="field"><label>Start</label><input type="datetime-local" id="eRegStart"></div>
+          <div class="field"><label>End</label><input type="datetime-local" id="eRegEnd"></div>
+        </div>
+        <div style="font-size:.56rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);margin-bottom:.65rem;font-family:'JetBrains Mono',monospace">Voting Window (IST)</div>
+        <div class="field-row">
+          <div class="field"><label>Start</label><input type="datetime-local" id="eVoteStart"></div>
+          <div class="field"><label>End</label><input type="datetime-local" id="eVoteEnd"></div>
+        </div>
+        <div class="field-note">Voting must start after registration ends.</div>
+        <button class="btn-sub" onclick="initElection()">Initialize Election</button>
+        <div class="alert" id="elecAlert"></div>
+      </div>
+    </div>
+
+    <!-- ADD CANDIDATE -->
+    <div class="tab-view" id="tab-candidate">
+      <div class="sec-head"><div><div class="sec-eyebrow">Management</div><div class="sec-title">Add Candidate</div></div></div>
+      <div id="candLockMsg"></div>
+      <div class="form-card">
+        <h3>Register Candidate</h3>
+        <div class="field">
+          <label>Election</label>
+          <select id="candElecId"><option value="">— Select Election —</option></select>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Voter ID (must be registered voter)</label><input type="text" id="candVId" placeholder="Voter ID"></div>
+          <div class="field"><label>Party Name</label><input type="text" id="candParty" placeholder="Party name"></div>
+        </div>
+        <div class="field"><label>Symbol (emoji or word)</label><input type="text" id="candSymbol" placeholder="🌺 or Hand, Lotus…"></div>
+        <div class="fz">
+          <div class="fz-hdr">Candidate Face Verify (optional)</div>
+          <div class="fz-cam">
+            <video id="cCamFeed" autoplay playsinline muted></video>
+            <img id="cPreview" alt="">
+            <div class="fz-ph" id="cCamPh"><span>Optional: verify candidate identity</span></div>
+          </div>
+          <div class="fz-actions">
+            <button class="fz-btn" id="cBtnOpen" onclick="openCCam()">Open Cam</button>
+            <button class="fz-btn pri" id="cBtnCap" onclick="captureCFace()" disabled>Capture</button>
+            <button class="fz-btn" id="cBtnRetake" onclick="retakeCFace()" style="display:none">Retake</button>
+          </div>
+        </div>
+        <button class="btn-sub" onclick="addCandidate()">Add Candidate</button>
+        <div class="alert" id="candAlert"></div>
+      </div>
+    </div>
+
+    <!-- FRAUD LOG -->
+    <div class="tab-view" id="tab-fraud">
+      <div class="sec-head"><div><div class="sec-eyebrow">Security</div><div class="sec-title">Fraud Log</div></div></div>
+      <table class="tbl">
+        <thead><tr><th>Time (IST)</th><th>Voter ID</th><th>IP</th><th>Event</th><th>Severity</th><th>Message</th></tr></thead>
+        <tbody id="fraudTable"><tr><td colspan="6" style="color:var(--muted2)">Loading…</td></tr></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Location data ──────────────────────────────────────────────────────────
+const LOC = { "Tamil Nadu": { "Coimbatore": ["SNSCT","SNSCE"] } };
+
+let data=null, voterList=[], vStream=null, vCaptured=null, cStream=null, cCaptured=null;
+let hChart=null, dpChart=null, dpTimer=null, curDetailId=null;
+
+// ── Init ───────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async()=>{
+  const stored=sessionStorage.getItem('officer');
+  if(!stored){document.getElementById('authGate').style.display='flex';return;}
+  const officer=JSON.parse(stored);
+  try{
+    const r=await fetch('/api/officer/analytics',{credentials:'include'});
+    if(r.status===401){sessionStorage.removeItem('officer');document.getElementById('authGate').style.display='flex';return;}
+    const d=await r.json();
+    if(!d.success){document.getElementById('authGate').style.display='flex';return;}
+    data=d;
+    document.getElementById('authGate').style.display='none';
+    document.getElementById('officerChip').textContent=officer.name;
+    if(d.election_active) document.getElementById('lockChip').classList.add('show');
+    renderAll(d);
+  }catch(e){document.getElementById('authGate').style.display='flex';}
+  setInterval(updateClock,1000);updateClock();
+  setInterval(refreshData,30000);
+});
+
+function updateClock(){
+  const ist=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kolkata'}));
+  document.getElementById('clock').textContent=ist.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true})+' IST';
+}
+
+async function refreshData(){
+  try{const r=await fetch('/api/officer/analytics',{credentials:'include'});const d=await r.json();if(d.success){data=d;renderAll(d);}}catch(e){}
+}
+
+function renderAll(d){
+  const a=d.analytics;
+  document.getElementById('stReg').textContent=a.total_registered;
+  document.getElementById('stVoted').textContent=a.total_voted;
+  document.getElementById('stPct').textContent=a.participation_pct+'%';
+  document.getElementById('stFraud').textContent=a.fraud.total;
+
+  // Ward table
+  const wt=document.getElementById('wardTable');
+  wt.innerHTML=a.wards.map(w=>`<tr>
+    <td>${w.ward}</td><td>${w.registered}</td><td>${w.voted||0}</td>
+    <td><div style="display:flex;align-items:center;gap:.5rem">
+      <div style="flex:1;height:3px;background:var(--border2);border-radius:999px;overflow:hidden">
+        <div style="height:100%;background:var(--gold);width:${Math.round((w.voted||0)*100/Math.max(w.registered,1))}%"></div>
+      </div>
+      <span style="font-size:.6rem;color:var(--muted);font-family:'JetBrains Mono',monospace">${Math.round((w.voted||0)*100/Math.max(w.registered,1))}%</span>
+    </div></td>
+  </tr>`).join('')||'<tr><td colspan="4" style="color:var(--muted2)">No voters.</td></tr>';
+
+  // Hourly chart
+  if(hChart) hChart.destroy();
+  const ctx=document.getElementById('hourlyChart').getContext('2d');
+  const hl=a.hourly_votes.map(h=>h.hour), hv=a.hourly_votes.map(h=>h.count);
+  hChart=new Chart(ctx,{type:'bar',data:{labels:hl.length?hl:['—'],datasets:[{data:hv.length?hv:[0],backgroundColor:'rgba(201,168,76,.45)',borderColor:'#c9a84c',borderWidth:1,borderRadius:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6b7080',font:{family:'JetBrains Mono',size:10}}},
+              y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6b7080',font:{family:'JetBrains Mono',size:10},stepSize:1,precision:0}}}}});
+
+  // Elections list
+  const scMap={VOTING_ACTIVE:'b-voting',REGISTRATION_OPEN:'b-reg',UPCOMING_REGISTRATION:'b-soon',REGISTRATION_CLOSED:'b-soon',ELECTION_ENDED:'b-ended'};
+  const lbMap={VOTING_ACTIVE:'Voting Live',REGISTRATION_OPEN:'Reg. Open',UPCOMING_REGISTRATION:'Upcoming',REGISTRATION_CLOSED:'Awaiting Vote',ELECTION_ENDED:'Ended'};
+  const elecRows=document.getElementById('elecRows');
+  if(!d.elections||!d.elections.length){elecRows.innerHTML='<div style="color:var(--muted2);font-family:JetBrains Mono,monospace;font-size:.75rem">No elections created yet.</div>';}
+  else elecRows.innerHTML=d.elections.map(e=>`
+    <div class="elec-row" onclick="openDetail(${e.id},'${e.name.replace(/'/g,"\\'")}','${e.status}')">
+      <div>
+        <div class="er-name">${e.name}</div>
+        <div class="er-meta">${e.location_type} · ${e.location_value||e.state||'All India'} · Voting: ${(e.election_start||'').replace('T',' ').slice(0,16)}</div>
+      </div>
+      <div class="er-r">
+        <span class="badge ${scMap[e.status]||'b-soon'}">${lbMap[e.status]||e.status.replace(/_/g,' ')}</span>
+        <span style="color:var(--muted2);font-size:.75rem">→</span>
+      </div>
+    </div>`).join('');
+
+  // Candidate select options
+  const csel=document.getElementById('candElecId');
+  const cv=csel.value;
+  csel.innerHTML='<option value="">— Select Election —</option>';
+  (d.elections||[]).filter(e=>e.status!=='ELECTION_ENDED').forEach(e=>{
+    const o=document.createElement('option');o.value=e.id;o.textContent=e.name;csel.appendChild(o);
+  });
+  if(cv) csel.value=cv;
+
+  // Voter list
+  if(d.voter_list){voterList=d.voter_list;renderVoterTable(d.voter_list);}
+
+  // WIC list
+  renderWICList(d.wic_list);
+
+  // Fraud log
+  const ft=document.getElementById('fraudTable');
+  ft.innerHTML=(d.fraud_log||[]).map(f=>`<tr>
+    <td>${f.occurred_at||'—'}</td><td>${f.voter_id||'—'}</td><td>${f.ip_address||'—'}</td>
+    <td>${f.event_type||'—'}</td>
+    <td><span class="badge ${f.severity==='CRITICAL'?'b-ended':f.severity==='HIGH'?'b-reg':'b-soon'}">${f.severity||'—'}</span></td>
+    <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.message||'—'}</td>
+  </tr>`).join('')||'<tr><td colspan="6" style="color:var(--muted2)">No fraud events.</td></tr>';
+
+  // Lock indicators
+  if(d.election_active){
+    document.getElementById('lockChip').classList.add('show');
+    document.getElementById('voterLockMsg').innerHTML='<div class="lock-box"><h4>🔒 Election Active</h4><p>Voter management is locked during an active voting window.</p></div>';
+    document.getElementById('candLockMsg').innerHTML='<div class="lock-box"><h4>🔒 Election Active</h4><p>Candidate management is locked during active voting.</p></div>';
+  }
+}
+
+// ── Election detail ────────────────────────────────────────────────────────
+async function openDetail(id, name, status){
+  curDetailId=id;
+  document.getElementById('dpTitle').textContent=name;
+  document.getElementById('detailPanel').classList.add('show');
+  document.getElementById('detailPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
+  if(dpTimer){clearInterval(dpTimer);dpTimer=null;}
+  await loadDetail();
+  if(status==='VOTING_ACTIVE') dpTimer=setInterval(loadDetail,10000);
+}
+
+async function loadDetail(){
+  if(!curDetailId) return;
+  try{
+    const r=await fetch(`/api/officer/election/${curDetailId}/detail`,{credentials:'include'});
+    const d=await r.json();
+    if(!d.success) return;
+    document.getElementById('dpTotal').textContent=d.total_registered;
+    document.getElementById('dpVoted').textContent=d.total_voted;
+    document.getElementById('dpPct').textContent=d.pct+'%';
+    document.getElementById('dpPctBar').textContent=d.pct+'%';
+    document.getElementById('dpBar').style.width=Math.min(d.pct,100)+'%';
+
+    // Chart
+    if(dpChart) dpChart.destroy();
+    const ctx=document.getElementById('dpChart').getContext('2d');
+    const hl=d.hourly.map(h=>h.hour), hv=d.hourly.map(h=>h.count);
+    dpChart=new Chart(ctx,{type:'bar',data:{labels:hl.length?hl:['—'],datasets:[{data:hv.length?hv:[0],backgroundColor:'rgba(45,212,160,.4)',borderColor:'#2dd4a0',borderWidth:1,borderRadius:2}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6b7080',font:{family:'JetBrains Mono',size:10}}},
+                y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6b7080',font:{family:'JetBrains Mono',size:10},stepSize:1,precision:0}}}}});
+
+    // Results (only after ended, no individual voter link)
+    const resDiv=document.getElementById('dpResults');
+    if(d.status==='ELECTION_ENDED'&&d.results&&d.results.length){
+      const maxVotes=Math.max(...d.results.map(r=>r.votes),1);
+      document.getElementById('dpResultBars').innerHTML=d.results.map((r,i)=>`
+        <div class="result-bar">
+          <div class="rb-name">${i===0&&r.votes>0?'🏆 ':''}${r.name}</div>
+          <div style="font-size:.6rem;color:var(--muted);font-family:'JetBrains Mono',monospace;min-width:70px">${r.party}</div>
+          <div class="rb-bar"><div class="rb-fill" style="width:${Math.round(r.votes*100/maxVotes)}%"></div></div>
+          <div class="rb-count">${r.votes}</div>
+        </div>`).join('');
+      resDiv.style.display='block';
+    } else { resDiv.style.display='none'; }
+
+    // Voter log — ID + time only, NO candidate
+    const tb=document.getElementById('dpVoterLog');
+    if(!d.voted_voters||!d.voted_voters.length){
+      tb.innerHTML='<tr><td colspan="4" style="color:var(--muted2)">No votes cast yet.</td></tr>';
+    } else {
+      tb.innerHTML=d.voted_voters.map(v=>`<tr>
+        <td>${v.voter_id}</td><td>${v.name}</td><td>${v.ward}</td>
+        <td>${(v.voted_at||'').replace('T',' ')}</td>
+      </tr>`).join('');
+    }
+  }catch(e){}
+}
+
+function closeDetail(){
+  if(dpTimer){clearInterval(dpTimer);dpTimer=null;}
+  curDetailId=null;
+  document.getElementById('detailPanel').classList.remove('show');
+}
+
+// ── Location dropdowns ─────────────────────────────────────────────────────
+function fillDistricts(stateSel, distSel, wardSel){
+  const s=document.getElementById(stateSel).value;
+  const dd=document.getElementById(distSel);
+  dd.innerHTML='<option value="">— District —</option>';
+  if(s&&LOC[s]) Object.keys(LOC[s]).forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;dd.appendChild(o);});
+  document.getElementById(wardSel).innerHTML='<option value="">— Ward —</option>';
+}
+function fillWards(distSel, stateSel, wardSel){
+  const s=document.getElementById(stateSel).value;
+  const d=document.getElementById(distSel).value;
+  const dw=document.getElementById(wardSel);
+  dw.innerHTML='<option value="">— Ward —</option>';
+  if(s&&d&&LOC[s]&&LOC[s][d]) LOC[s][d].forEach(w=>{const o=document.createElement('option');o.value=w;o.textContent=w;dw.appendChild(o);});
+}
+function onVState(){fillDistricts('vState','vDistrict','vWard');}
+function onVDist(){fillWards('vDistrict','vState','vWard');}
+function onWICState(){fillDistricts('wicState','wicDistrict','wicWard');}
+function onWICDist(){fillWards('wicDistrict','wicState','wicWard');}
+
+function onElecLocType(){
+  const t=document.getElementById('eLocType').value;
+  const valSel=document.getElementById('eLocVal');
+  const sdRow=document.getElementById('eStateDist');
+  valSel.innerHTML='<option value="">— Select —</option>';
+  if(t==='national'){
+    valSel.innerHTML='<option value="India">India</option>';
+    valSel.value='India'; sdRow.style.display='none';
+  } else if(t==='state'){
+    Object.keys(LOC).forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;valSel.appendChild(o);});
+    sdRow.style.display='none';
+  } else if(t==='district'){
+    Object.entries(LOC).forEach(([s,ds])=>Object.keys(ds).forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=`${d} (${s})`;valSel.appendChild(o);}));
+    sdRow.style.display='grid';
+  } else if(t==='ward'){
+    Object.entries(LOC).forEach(([s,ds])=>Object.entries(ds).forEach(([d,ws])=>ws.forEach(w=>{const o=document.createElement('option');o.value=w;o.textContent=`${w} (${d})`;valSel.appendChild(o);})));
+    sdRow.style.display='none';
+  }
+}
+
+// ── Voter cam ──────────────────────────────────────────────────────────────
+async function openVCam(){try{vStream=await navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:'user'}});const v=document.getElementById('vCamFeed');v.srcObject=vStream;v.classList.add('on');document.getElementById('vCamPh').style.display='none';document.getElementById('vBtnCap').disabled=false;document.getElementById('vBtnOpen').disabled=true;}catch(e){alert('Camera error: '+e.message);}}
+function captureVFace(){const v=document.getElementById('vCamFeed');const c=document.createElement('canvas');c.width=640;c.height=480;c.getContext('2d').drawImage(v,0,0);vCaptured=c.toDataURL('image/jpeg',.85).split(',')[1];const img=document.getElementById('vPreview');img.src='data:image/jpeg;base64,'+vCaptured;img.classList.add('on');v.classList.remove('on');document.getElementById('vBtnCap').style.display='none';document.getElementById('vBtnRetake').style.display='block';if(vStream){vStream.getTracks().forEach(t=>t.stop());vStream=null;}}
+function retakeVFace(){vCaptured=null;document.getElementById('vPreview').classList.remove('on');document.getElementById('vCamFeed').classList.remove('on');document.getElementById('vBtnCap').style.display='block';document.getElementById('vBtnRetake').style.display='none';document.getElementById('vBtnCap').disabled=true;document.getElementById('vBtnOpen').disabled=false;}
+async function openCCam(){try{cStream=await navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:'user'}});const v=document.getElementById('cCamFeed');v.srcObject=cStream;v.classList.add('on');document.getElementById('cCamPh').style.display='none';document.getElementById('cBtnCap').disabled=false;document.getElementById('cBtnOpen').disabled=true;}catch(e){alert('Camera error: '+e.message);}}
+function captureCFace(){const v=document.getElementById('cCamFeed');const c=document.createElement('canvas');c.width=640;c.height=480;c.getContext('2d').drawImage(v,0,0);cCaptured=c.toDataURL('image/jpeg',.85).split(',')[1];const img=document.getElementById('cPreview');img.src='data:image/jpeg;base64,'+cCaptured;img.classList.add('on');v.classList.remove('on');document.getElementById('cBtnCap').style.display='none';document.getElementById('cBtnRetake').style.display='block';if(cStream){cStream.getTracks().forEach(t=>t.stop());cStream=null;}}
+function retakeCFace(){cCaptured=null;document.getElementById('cPreview').classList.remove('on');document.getElementById('cCamFeed').classList.remove('on');document.getElementById('cBtnCap').style.display='block';document.getElementById('cBtnRetake').style.display='none';document.getElementById('cBtnCap').disabled=true;document.getElementById('cBtnOpen').disabled=false;}
+
+// ── Voter table ────────────────────────────────────────────────────────────
+function renderVoterTable(voters){
+  const tb=document.getElementById('voterTable');
+  tb.innerHTML=voters.map(v=>`<tr>
+    <td>${v.voter_id}</td><td>${v.name}</td><td>${v.ward}</td><td>${v.district}</td>
+    <td><span class="badge ${v.has_voted?'b-voting':'b-soon'}">${v.has_voted?'Voted':'Not Voted'}</span></td>
+    <td>${(v.registered_at||'').slice(0,16).replace('T',' ')}</td>
+    <td>${v.has_voted?'<span style="color:var(--muted2);font-size:.62rem;font-family:JetBrains Mono,monospace">—</span>':`<button class="btn-del" style="padding:.22rem .55rem;font-size:.6rem" onclick="removeVoter('${v.voter_id}')">Remove</button>`}</td>
+  </tr>`).join('')||'<tr><td colspan="7" style="color:var(--muted2)">No voters registered.</td></tr>';
+}
+function filterVoters(){const q=document.getElementById('voterSearch').value.toLowerCase();renderVoterTable(voterList.filter(v=>v.name.toLowerCase().includes(q)||v.voter_id.toLowerCase().includes(q)||v.ward.toLowerCase().includes(q)));}
+async function fetchVoters(){try{const r=await fetch('/api/officer/voters',{credentials:'include'});const d=await r.json();if(d.success){voterList=d.voters;renderVoterTable(d.voters);}}catch(e){}}
+
+function renderWICList(wics){
+  const el=document.getElementById('wicList');
+  if(!wics||!wics.length){el.innerHTML='<div style="color:var(--muted2);font-family:JetBrains Mono,monospace;font-size:.75rem">No WIC accounts yet.</div>';return;}
+  el.innerHTML=wics.map(w=>`
+    <div class="wic-card">
+      <div><div class="wic-name">${w.name}</div>
+      <div class="wic-meta">${w.wic_id} · ${w.ward} · ${w.district}, ${w.state} · Created by ${w.created_by}</div></div>
+      <button class="btn-del" onclick="deleteWIC('${w.wic_id}','${w.name}')">Remove</button>
+    </div>`).join('');
+}
+
+// ── Actions ────────────────────────────────────────────────────────────────
+async function addVoter(){
+  const a=document.getElementById('voterAlert');a.className='alert';
+  if(!vCaptured){a.textContent='Please capture voter face first.';a.className='alert err';return;}
+  const ward=document.getElementById('vWard').value;
+  const dist=document.getElementById('vDistrict').value;
+  const state=document.getElementById('vState').value;
+  if(!ward||!dist||!state){a.textContent='Please select state, district and ward.';a.className='alert err';return;}
+  const btn=document.getElementById('btnAddVoter');btn.disabled=true;btn.textContent='Adding…';
+  try{
+    const r=await fetch('/api/officer/voter',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({voter_id:document.getElementById('vId').value.trim(),name:document.getElementById('vName').value.trim(),
+        dob:document.getElementById('vDob').value,phone:document.getElementById('vPhone').value.trim(),
+        state,district:dist,ward,face_image:vCaptured})});
+    const d=await r.json();
+    a.textContent=d.message;a.className='alert '+(d.success?'ok':'err');
+    if(d.success){retakeVFace();refreshData();}
+  }catch(e){a.textContent='Error: '+e.message;a.className='alert err';}
+  btn.disabled=false;btn.textContent='Add Voter';
+}
+
+async function removeVoter(vid){
+  if(!confirm(`Remove voter '${vid}'?`)) return;
+  try{const r=await fetch(`/api/officer/voter/${vid}`,{method:'DELETE',credentials:'include'});const d=await r.json();if(d.success)refreshData();else alert(d.message);}catch(e){alert('Error: '+e.message);}
+}
+
+async function createWIC(){
+  const a=document.getElementById('wicAlert');a.className='alert';
+  const ward=document.getElementById('wicWard').value;
+  const dist=document.getElementById('wicDistrict').value;
+  const state=document.getElementById('wicState').value;
+  if(!ward||!dist||!state){a.textContent='Please select state, district and ward.';a.className='alert err';return;}
+  try{
+    const r=await fetch('/api/officer/wic',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({wic_id:document.getElementById('wicId').value.trim(),name:document.getElementById('wicName').value.trim(),
+        state,district:dist,ward,password:document.getElementById('wicPw').value})});
+    const d=await r.json();a.textContent=d.message;a.className='alert '+(d.success?'ok':'err');
+    if(d.success)refreshData();
+  }catch(e){a.textContent='Error: '+e.message;a.className='alert err';}
+}
+
+async function deleteWIC(id,name){
+  if(!confirm(`Remove WIC '${name}'?`)) return;
+  try{const r=await fetch(`/api/officer/wic/${id}`,{method:'DELETE',credentials:'include'});const d=await r.json();if(d.success)refreshData();else alert(d.message);}catch(e){alert('Error: '+e.message);}
+}
+
+async function initElection(){
+  const a=document.getElementById('elecAlert');a.className='alert';
+  const name=document.getElementById('eName').value.trim();
+  const locType=document.getElementById('eLocType').value;
+  const locVal=document.getElementById('eLocVal').value;
+  const rs=document.getElementById('eRegStart').value;
+  const re=document.getElementById('eRegEnd').value;
+  const vs=document.getElementById('eVoteStart').value;
+  const ve=document.getElementById('eVoteEnd').value;
+  if(!name){a.textContent='Election name required.';a.className='alert err';return;}
+  if(!locType||!locVal){a.textContent='Select location type and value.';a.className='alert err';return;}
+  if(!rs||!re||!vs||!ve){a.textContent='All four date/time fields required.';a.className='alert err';return;}
+  function toIST(v){return v.length===16?v+':00':v;}
+  // Auto-fill state/district based on locType
+  let state='Tamil Nadu', district='Coimbatore';
+  if(locType==='national'){state='';district='';}
+  else if(locType==='state'){state=locVal;district='';}
+  try{
+    const r=await fetch('/api/officer/init-election',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,location_type:locType,location_value:locVal,state,district,
+        registration_start:toIST(rs),registration_end:toIST(re),election_start:toIST(vs),election_end:toIST(ve)})});
+    const d=await r.json();a.textContent=d.message;a.className='alert '+(d.success?'ok':'err');
+    if(d.success)refreshData();
+  }catch(e){a.textContent='Error: '+e.message;a.className='alert err';}
+}
+
+async function addCandidate(){
+  const a=document.getElementById('candAlert');a.className='alert';
+  try{
+    const r=await fetch('/api/officer/add-candidate',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({election_id:document.getElementById('candElecId').value,
+        voter_id:document.getElementById('candVId').value.trim(),party:document.getElementById('candParty').value.trim(),
+        symbol:document.getElementById('candSymbol').value.trim(),face_image:cCaptured||''})});
+    const d=await r.json();a.textContent=d.message;a.className='alert '+(d.success?'ok':'err');
+    if(d.success)refreshData();
+  }catch(e){a.textContent='Error: '+e.message;a.className='alert err';}
+}
+
+// ── Nav ────────────────────────────────────────────────────────────────────
+function show(tab){
+  document.querySelectorAll('.tab-view').forEach(t=>t.classList.remove('show'));
+  document.getElementById('tab-'+tab).classList.add('show');
+  document.querySelectorAll('.sn-item').forEach(b=>{
+    const fn=b.getAttribute('onclick')||'';
+    b.classList.toggle('active',fn.includes("'"+tab+"'"));
+  });
+  if(tab==='voters') fetchVoters();
+  if(tab!=='elections'){closeDetail();}
+}
+
+async function logout(){
+  await fetch('/api/officer/logout',{method:'POST',credentials:'include'});
+  sessionStorage.removeItem('officer');
+  location.href='/officer-login';
+}
+</script>
+</body>
+</html>

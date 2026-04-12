@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BlockVote — Public Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05060a;--surface:#0c0e14;--surface2:#10121a;--border:#1a1d27;--border2:#242736;
+  --gold:#c9a84c;--gold2:#e8c97a;--gold-dim:rgba(201,168,76,0.10);
+  --text:#e8eaf0;--muted:#6b7080;--muted2:#3d4155;
+  --green:#2dd4a0;--red:#ef5858;
+}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh}
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:60px;border-bottom:1px solid var(--border);background:rgba(5,6,10,.97);position:sticky;top:0;z-index:100}
+.logo{font-size:.82rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;gap:.5rem}
+.logo-dot{width:7px;height:7px;background:var(--gold);border-radius:50%}
+.nav-r{display:flex;align-items:center;gap:1rem}
+.live-badge{display:flex;align-items:center;gap:.35rem;font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--green);font-family:'JetBrains Mono',monospace}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:bl 1.4s infinite}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.3}}
+.clock{font-size:.7rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.officer-link{font-size:.65rem;color:var(--muted2);text-decoration:none;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--border);padding:.22rem .65rem;border-radius:3px;transition:all .2s;font-family:'JetBrains Mono',monospace}
+.officer-link:hover{color:var(--gold);border-color:rgba(201,168,76,.3)}
+
+.page{display:none}.page.show{display:block}
+
+/* HOME */
+.hero{padding:3.5rem 2.5rem 2rem;border-bottom:1px solid var(--border)}
+.eyebrow{font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:.9rem;display:flex;align-items:center;gap:.6rem;font-family:'JetBrains Mono',monospace}
+.eyebrow::before{content:'';width:18px;height:1px;background:var(--gold)}
+h1{font-size:clamp(2rem,4vw,3.2rem);font-weight:800;line-height:.95;letter-spacing:-.02em;text-transform:uppercase;margin-bottom:.7rem}
+h1 em{font-style:normal;color:var(--gold)}
+.hero-sub{font-size:.75rem;color:var(--muted);font-family:'JetBrains Mono',monospace;line-height:1.7;max-width:460px}
+
+.filter-wrap{padding:2rem 2.5rem;border-bottom:1px solid var(--border)}
+.filter-title{font-size:.58rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted2);margin-bottom:.9rem;font-family:'JetBrains Mono',monospace}
+.filter-row{display:flex;gap:1rem;align-items:flex-end;flex-wrap:wrap;max-width:680px}
+.fg{display:flex;flex-direction:column;gap:.35rem;flex:1;min-width:140px}
+.fg label{font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);font-family:'JetBrains Mono',monospace}
+select.fsel{padding:.6rem .85rem;background:var(--surface);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-size:.8rem;font-family:'JetBrains Mono',monospace;outline:none;cursor:pointer;transition:border-color .2s}
+select.fsel:focus{border-color:var(--gold)}
+select.fsel option{background:var(--bg)}
+select.fsel:disabled{opacity:.38;cursor:not-allowed}
+
+.ward-grid{padding:1.5rem 2.5rem 3rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:.7rem;max-width:840px}
+.ward-card{border:1px solid var(--border2);border-radius:6px;padding:1.1rem 1.3rem;background:var(--surface);cursor:pointer;transition:all .18s}
+.ward-card:hover{border-color:var(--gold);background:var(--gold-dim)}
+.wc-name{font-size:.92rem;font-weight:700;margin-bottom:.25rem}
+.wc-sub{font-size:.65rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.wc-arr{color:var(--gold);font-size:.72rem;margin-top:.5rem}
+
+/* WARD PAGE */
+.inner-page{padding:2rem 2.5rem}
+.back-btn{display:inline-flex;align-items:center;gap:.4rem;font-size:.68rem;color:var(--muted);background:none;border:none;cursor:pointer;font-family:'Syne',sans-serif;letter-spacing:.07em;text-transform:uppercase;margin-bottom:1.3rem;transition:color .2s;padding:0}
+.back-btn:hover{color:var(--gold)}
+.pg-eyebrow{font-size:.58rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:.3rem;font-family:'JetBrains Mono',monospace}
+.pg-title{font-size:1.5rem;font-weight:800;text-transform:uppercase;letter-spacing:-.02em;margin-bottom:.3rem}
+.pg-sub{font-size:.7rem;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:1.8rem;line-height:1.6}
+
+.elec-list{display:flex;flex-direction:column;gap:.6rem;max-width:600px}
+.elec-row{border:1px solid var(--border2);border-radius:5px;padding:1rem 1.2rem;background:var(--surface);cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:space-between;gap:.8rem}
+.elec-row:hover{border-color:var(--gold);background:var(--gold-dim)}
+.er-name{font-size:.88rem;font-weight:700;margin-bottom:.15rem}
+.er-meta{font-size:.62rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.er-r{display:flex;align-items:center;gap:.7rem;flex-shrink:0}
+.sbadge{font-size:.56rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.18rem .5rem;border-radius:2px;font-family:'JetBrains Mono',monospace}
+.s-voting{background:rgba(45,212,160,.1);color:var(--green);border:1px solid rgba(45,212,160,.2)}
+.s-reg{background:rgba(201,168,76,.1);color:var(--gold);border:1px solid rgba(201,168,76,.2)}
+.s-soon{background:rgba(107,112,128,.1);color:var(--muted);border:1px solid var(--border2)}
+.s-ended{background:rgba(239,88,88,.1);color:var(--red);border:1px solid rgba(239,88,88,.2)}
+.empty-msg{color:var(--muted2);font-size:.78rem;font-family:'JetBrains Mono',monospace;padding:2rem 0}
+
+/* STATS PAGE */
+.stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:1.2rem;max-width:580px}
+.sc{background:var(--surface);padding:1.1rem 1.3rem;border-right:1px solid var(--border)}
+.sc:last-child{border-right:none}
+.sc-lbl{font-size:.55rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem;font-family:'JetBrains Mono',monospace}
+.sc-val{font-size:1.9rem;font-weight:800;letter-spacing:-.04em}
+.sc-val.gold{color:var(--gold)}.sc-val.green{color:var(--green)}
+.sc-sub{font-size:.58rem;color:var(--muted2);font-family:'JetBrains Mono',monospace;margin-top:.15rem}
+
+.prog-block{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1.2rem 1.4rem;max-width:580px;margin-bottom:1.2rem}
+.prog-hdr{display:flex;justify-content:space-between;margin-bottom:.6rem}
+.prog-hdr-lbl{font-size:.65rem;font-family:'JetBrains Mono',monospace;color:var(--text)}
+.prog-hdr-pct{font-size:.65rem;color:var(--gold);font-family:'JetBrains Mono',monospace;font-weight:700}
+.prog-out{height:6px;background:var(--border2);border-radius:999px;overflow:hidden}
+.prog-in{height:100%;background:var(--gold);border-radius:999px;transition:width 1s ease}
+
+.chart-box{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1.2rem 1.4rem;max-width:580px;margin-bottom:1.2rem}
+.chart-box-lbl{font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.9rem;font-family:'JetBrains Mono',monospace}
+.chart-h{position:relative;height:190px}
+
+.info-note{font-size:.68rem;color:var(--muted);font-family:'JetBrains Mono',monospace;line-height:1.7;padding:.8rem 1rem;border:1px solid var(--border);border-radius:4px;max-width:580px;background:var(--surface)}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo"><div class="logo-dot"></div>BlockVote</div>
+  <div class="nav-r">
+    <div class="live-badge"><div class="live-dot"></div>Public</div>
+    <div class="clock" id="clock">--:--:--</div>
+    <a href="/officer-login" class="officer-link">Officers →</a>
+  </div>
+</nav>
+
+<!-- PAGE: Home -->
+<div class="page show" id="pgHome">
+  <div class="hero">
+    <div class="eyebrow">Election Transparency Portal</div>
+    <h1>Track Your<br><em>Ward's</em> Vote</h1>
+    <p class="hero-sub">Select your location to see live election participation data. Candidate-wise results are only revealed after polls close.</p>
+  </div>
+
+  <div class="filter-wrap">
+    <div class="filter-title">Filter by location</div>
+    <div class="filter-row">
+      <div class="fg">
+        <label>State</label>
+        <select class="fsel" id="fState" onchange="onState()">
+          <option value="">All States</option>
+          <option value="Tamil Nadu">Tamil Nadu</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>District</label>
+        <select class="fsel" id="fDist" onchange="onDist()">
+          <option value="">All Districts</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Ward / College</label>
+        <select class="fsel" id="fWard" onchange="onWardDrop()">
+          <option value="">All Wards</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="ward-grid" id="wardGrid"></div>
+</div>
+
+<!-- PAGE: Ward elections -->
+<div class="page" id="pgWard">
+  <div class="inner-page">
+    <button class="back-btn" onclick="goHome()">← Back</button>
+    <div class="pg-eyebrow" id="wEyebrow">Ward</div>
+    <div class="pg-title" id="wTitle">—</div>
+    <p class="pg-sub">Select an election to view live voter participation</p>
+    <div class="elec-list" id="elecList"><div class="empty-msg">Loading…</div></div>
+  </div>
+</div>
+
+<!-- PAGE: Election stats -->
+<div class="page" id="pgStats">
+  <div class="inner-page">
+    <button class="back-btn" onclick="goWard()">← Back to elections</button>
+    <div class="pg-eyebrow" id="sEyebrow">Live Stats</div>
+    <div class="pg-title" id="sTitle">—</div>
+    <p class="pg-sub" id="sSub">Participation data updates every 10 seconds during active voting</p>
+
+    <div class="stat-row">
+      <div class="sc"><div class="sc-lbl">Registered</div><div class="sc-val gold" id="sTotal">—</div><div class="sc-sub">in scope</div></div>
+      <div class="sc"><div class="sc-lbl">Voted</div><div class="sc-val green" id="sVoted">—</div><div class="sc-sub">cast so far</div></div>
+      <div class="sc"><div class="sc-lbl">Turnout</div><div class="sc-val" id="sPct">—</div><div class="sc-sub">participation</div></div>
+    </div>
+
+    <div class="prog-block">
+      <div class="prog-hdr">
+        <span class="prog-hdr-lbl">Votes cast vs registered voters</span>
+        <span class="prog-hdr-pct" id="pPct">0%</span>
+      </div>
+      <div class="prog-out"><div class="prog-in" id="pBar" style="width:0%"></div></div>
+    </div>
+
+    <div class="chart-box">
+      <div class="chart-box-lbl">Hourly vote activity</div>
+      <div class="chart-h"><canvas id="hChart"></canvas></div>
+    </div>
+
+    <div class="info-note" id="infoNote"></div>
+  </div>
+</div>
+
+<script>
+const LOC = {
+  "Tamil Nadu": { "Coimbatore": ["SNSCT","SNSCE"] }
+};
+
+let curWard=null, curElecId=null, curElecStatus=null;
+let hChart=null, refreshTimer=null;
+
+function updateClock(){
+  const ist=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kolkata'}));
+  document.getElementById('clock').textContent=ist.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true})+' IST';
+}
+setInterval(updateClock,1000);updateClock();
+
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));document.getElementById(id).classList.add('show');}
+
+// ── Filters ────────────────────────────────────────────────────────────
+function onState(){
+  const s=document.getElementById('fState').value;
+  const dd=document.getElementById('fDist');
+  const dw=document.getElementById('fWard');
+  dd.innerHTML='<option value="">All Districts</option>';
+  dw.innerHTML='<option value="">All Wards</option>';
+  if(s&&LOC[s]) Object.keys(LOC[s]).forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;dd.appendChild(o);});
+  renderCards();
+}
+function onDist(){
+  const s=document.getElementById('fState').value;
+  const d=document.getElementById('fDist').value;
+  const dw=document.getElementById('fWard');
+  dw.innerHTML='<option value="">All Wards</option>';
+  if(s&&d&&LOC[s]&&LOC[s][d]) LOC[s][d].forEach(w=>{const o=document.createElement('option');o.value=w;o.textContent=w;dw.appendChild(o);});
+  renderCards();
+}
+function onWardDrop(){const w=document.getElementById('fWard').value;if(w)openWard(w);else renderCards();}
+
+function getFilteredWards(){
+  const s=document.getElementById('fState').value;
+  const d=document.getElementById('fDist').value;
+  const w=document.getElementById('fWard').value;
+  if(w) return [{ward:w,dist:d||'Coimbatore',state:s||'Tamil Nadu'}];
+  let out=[];
+  const states=s?{[s]:LOC[s]}:LOC;
+  Object.entries(states).forEach(([st,dists])=>{
+    const ds=d?{[d]:dists[d]}:dists;
+    if(!ds) return;
+    Object.entries(ds).forEach(([di,wards])=>{
+      (wards||[]).forEach(wa=>out.push({ward:wa,dist:di,state:st}));
+    });
+  });
+  return out;
+}
+
+function renderCards(){
+  const wards=getFilteredWards();
+  const g=document.getElementById('wardGrid');
+  g.innerHTML=wards.map(({ward,dist,state})=>`
+    <div class="ward-card" onclick="openWard('${ward}')">
+      <div class="wc-name">${ward}</div>
+      <div class="wc-sub">${dist} · ${state}</div>
+      <div class="wc-arr">View elections →</div>
+    </div>`).join('');
+}
+renderCards();
+
+// ── Ward page ──────────────────────────────────────────────────────────
+async function openWard(ward){
+  curWard=ward;
+  document.getElementById('wEyebrow').textContent='Ward / College';
+  document.getElementById('wTitle').textContent=ward;
+  document.getElementById('elecList').innerHTML='<div class="empty-msg">Loading…</div>';
+  showPage('pgWard');
+  try{
+    const r=await fetch(`/api/public/ward/${encodeURIComponent(ward)}/elections`);
+    const d=await r.json();
+    if(!d.success){document.getElementById('elecList').innerHTML=`<div class="empty-msg">${d.message}</div>`;return;}
+    if(!d.elections||!d.elections.length){document.getElementById('elecList').innerHTML='<div class="empty-msg">No elections found for this ward.</div>';return;}
+    const sc={VOTING_ACTIVE:'s-voting',REGISTRATION_OPEN:'s-reg',UPCOMING_REGISTRATION:'s-soon',REGISTRATION_CLOSED:'s-soon',ELECTION_ENDED:'s-ended'};
+    const lb={VOTING_ACTIVE:'Voting Live',REGISTRATION_OPEN:'Reg. Open',UPCOMING_REGISTRATION:'Upcoming',REGISTRATION_CLOSED:'Awaiting Vote',ELECTION_ENDED:'Ended'};
+    document.getElementById('elecList').innerHTML=d.elections.map(e=>`
+      <div class="elec-row" onclick="openStats(${e.id},'${e.name.replace(/'/g,"\\'")}','${e.status}')">
+        <div>
+          <div class="er-name">${e.name}</div>
+          <div class="er-meta">${e.election_start?e.election_start.replace('T',' ').slice(0,16)+' IST':''}</div>
+        </div>
+        <div class="er-r">
+          <span class="sbadge ${sc[e.status]||'s-soon'}">${lb[e.status]||e.status.replace(/_/g,' ')}</span>
+          <span style="color:var(--muted2);font-size:.8rem">→</span>
+        </div>
+      </div>`).join('');
+  }catch(e){document.getElementById('elecList').innerHTML=`<div class="empty-msg">Error: ${e.message}</div>`;}
+}
+
+// ── Stats page ─────────────────────────────────────────────────────────
+async function openStats(id, name, status){
+  curElecId=id; curElecStatus=status;
+  const titles={VOTING_ACTIVE:'Live Participation',ELECTION_ENDED:'Election Closed',REGISTRATION_OPEN:'Registration Open',UPCOMING_REGISTRATION:'Upcoming',REGISTRATION_CLOSED:'Awaiting Voting'};
+  document.getElementById('sEyebrow').textContent=titles[status]||'Election Stats';
+  document.getElementById('sTitle').textContent=name;
+  document.getElementById('sSub').textContent='No candidate-wise counts shown here';
+  showPage('pgStats');
+  if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}
+  await loadStats();
+  if(status==='VOTING_ACTIVE') refreshTimer=setInterval(loadStats,10000);
+}
+
+async function loadStats(){
+  if(!curElecId) return;
+  try{
+    const r=await fetch(`/api/public/election/${curElecId}/stats`);
+    const d=await r.json();
+    if(!d.success) return;
+    document.getElementById('sTotal').textContent=d.total_registered;
+    document.getElementById('sVoted').textContent=d.total_voted;
+    document.getElementById('sPct').textContent=d.pct+'%';
+    document.getElementById('pPct').textContent=d.pct+'%';
+    document.getElementById('pBar').style.width=Math.min(d.pct,100)+'%';
+
+    const notes={VOTING_ACTIVE:'Voting is live. Counts update every 10 seconds. Candidate results shown after polls close.',ELECTION_ENDED:'This election has ended. Visit the Officer Portal for detailed results.',REGISTRATION_OPEN:'Registration window is open. Voting has not started yet.'};
+    document.getElementById('infoNote').textContent=notes[d.status]||'';
+
+    const labels=d.hourly.map(h=>h.hour);
+    const vals=d.hourly.map(h=>h.count);
+    if(hChart) hChart.destroy();
+    const ctx=document.getElementById('hChart').getContext('2d');
+    hChart=new Chart(ctx,{type:'bar',
+      data:{labels:labels.length?labels:['—'],datasets:[{data:vals.length?vals:[0],backgroundColor:'rgba(201,168,76,.45)',borderColor:'#c9a84c',borderWidth:1,borderRadius:2}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw} votes`}}},
+        scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6b7080',font:{family:'JetBrains Mono',size:10}}},
+                y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6b7080',font:{family:'JetBrains Mono',size:10},stepSize:1,precision:0}}}}});
+  }catch(e){}
+}
+
+function goHome(){if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}showPage('pgHome');}
+function goWard(){if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}if(curWard)openWard(curWard);else showPage('pgWard');}
+</script>
+</body>
+</html>
