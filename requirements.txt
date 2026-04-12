@@ -3,7 +3,8 @@ flask-cors==4.0.0
 requests==2.31.0
 numpy
 Pillow
-gunicorn==21.2.0
+gunicorn
+web3==6.11.3
 
 # Blockchain (optional — app works in simulation mode without Ganache)
 # web3==6.11.3
