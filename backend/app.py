@@ -82,6 +82,9 @@ def election_not_active(f):
 @app.route("/")
 def home():           return send_from_directory(FRONTEND, "index.html")
 
+@app.route("/register")
+def register_page():  return send_from_directory(FRONTEND, "register.html")
+
 # Ward In-Charge terminal (public entry point)
 @app.route("/ward-login")
 def ward_login():     return send_from_directory(FRONTEND, "ward-login.html")
@@ -293,6 +296,57 @@ def api_wic_stats():
     })
 
 # ── API: Election Officer Registration ────────────────────────────────────────
+
+
+# ── API: Public Voter Self-Registration ───────────────────────────────────────
+@app.route("/api/register/voter", methods=["POST"])
+def api_register_voter_public():
+    """Voter self-registers via the public registration page."""
+    d        = request.get_json() or {}
+    voter_id = d.get("voter_id", "").strip()
+    name     = d.get("name", "").strip()
+    dob      = d.get("dob", "").strip()
+    phone    = d.get("phone", "").strip()
+    state    = d.get("state", "").strip()
+    district = d.get("district", "").strip()
+    ward     = d.get("ward", "").strip()
+    face_b64 = d.get("face_image", "").strip()
+
+    if not all([voter_id, name, state, district, ward]):
+        return jsonify({"success": False, "message": "Voter ID, name, state, district and ward are required."})
+    if db.voter_exists(voter_id):
+        return jsonify({"success": False, "message": f"Voter ID '{voter_id}' is already registered."})
+    if not face_b64:
+        return jsonify({"success": False, "message": "Face image is required for biometric registration."})
+
+    fp = face.register(voter_id, face_b64)
+    if not fp["success"]:
+        return jsonify({"success": False, "message": fp["message"]})
+
+    blockchain_id = hashlib.sha256(
+        f"{voter_id}:{name}:{os.urandom(8).hex()}".encode()
+    ).hexdigest()
+
+    db.register_voter(voter_id, name, dob, phone, state, district, ward, fp["hash"], blockchain_id)
+
+    # Get elections for this voter location
+    elections = db.get_elections_for_voter(state, district, ward) if hasattr(db, "get_elections_for_voter") else []
+    election_info = []
+    for e in elections:
+        status = db.get_election_status(e) if hasattr(db, "get_election_status") else "UNKNOWN"
+        election_info.append({
+            "id": e["id"], "name": e["name"], "status": status,
+            "election_start": e.get("election_start",""),
+            "election_end":   e.get("election_end",""),
+        })
+
+    return jsonify({
+        "success":       True,
+        "message":       f"{name} registered successfully.",
+        "blockchain_id": blockchain_id[:24] + "...",
+        "face_mode":     fp["mode"],
+        "elections":     election_info,
+    })
 
 @app.route("/api/officer/register", methods=["POST"])
 def api_register_officer():
