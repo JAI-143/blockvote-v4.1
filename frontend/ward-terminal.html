@@ -331,11 +331,21 @@ canvas.ch{display:none}
 <script>
 let wic=null,stream=null,capturedImage=null,currentVoterData=null,selectedCandidateId=null,statsInterval=null;
 
+
+// ── WIC Auth helper ────────────────────────────────────────────────────────
+function wicFetch(url, opts={}) {
+  const stored = sessionStorage.getItem("wic");
+  const token = stored ? (JSON.parse(stored).token || "") : "";
+  opts.credentials = "include";
+  opts.headers = Object.assign({"X-WIC-Token": token}, opts.headers || {});
+  return fetch(url, opts);
+}
+
 window.addEventListener("DOMContentLoaded",async()=>{
   const stored=sessionStorage.getItem("wic");
   if(!stored){document.getElementById("authGate").style.display="flex";return;}
   wic=JSON.parse(stored);
-  try{const r=await fetch("/api/wic/status",{credentials:"include"});const d=await r.json();if(!d.logged_in){sessionStorage.removeItem("wic");document.getElementById("authGate").style.display="flex";return;}}catch(e){}
+  try{const r=await wicFetch("/api/wic/status");const d=await r.json();if(!d.logged_in){sessionStorage.removeItem("wic");document.getElementById("authGate").style.display="flex";return;}}catch(e){}
   document.getElementById("authGate").style.display="none";
   document.getElementById("wardLabel").textContent=wic.ward;
   document.getElementById("wicLabel").textContent=wic.name;
@@ -359,7 +369,7 @@ function updateClock(){
 
 async function loadStats(){
   try{
-    const r=await fetch("/api/wic/stats",{credentials:"include"});const d=await r.json();
+    const r=await wicFetch("/api/wic/stats");const d=await r.json();
     if(!d.success)return;
     document.getElementById("statVoted").textContent=d.voted;
     document.getElementById("statTotal").textContent=d.total;
@@ -438,7 +448,7 @@ async function loginVoter(){
   if(!capturedImage){a.textContent="Please capture your face first.";a.className="alert err";return;}
   const btn=document.getElementById("btnLogin");btn.disabled=true;btn.textContent="Loading...";
   try{
-    const r=await fetch("/api/voter/verify",{
+    const r=await wicFetch("/api/voter/verify",{
       method:"POST",credentials:"include",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({voter_id:voterId,face_image:capturedImage})
@@ -479,7 +489,7 @@ async function castVote(){
   const btn=document.getElementById("btnCastVote");btn.disabled=true;btn.textContent="Recording...";
   const a=document.getElementById("voteAlert");a.className="alert";
   try{
-    const r=await fetch("/api/voter/vote",{
+    const r=await wicFetch("/api/voter/vote",{
       method:"POST",credentials:"include",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({voter_id:currentVoterData.voter.voter_id,candidate_id:selectedCandidateId,election_id:currentVoterData.election.id})
@@ -506,7 +516,7 @@ function resetTerminal(){
 
 async function logout(){
   if(statsInterval)clearInterval(statsInterval);closeStream();
-  await fetch("/api/wic/logout",{method:"POST",credentials:"include"});
+  await wicFetch("/api/wic/logout",{method:"POST"});
   sessionStorage.removeItem("wic");location.href="/";
 }
 </script>

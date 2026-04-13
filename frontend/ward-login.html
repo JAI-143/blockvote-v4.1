@@ -82,7 +82,7 @@ async function doLogin(){
     if(d.success){
       sessionStorage.setItem("wic",JSON.stringify({wic_id:d.wic_id,name:d.name,ward:d.ward,
         district:d.district,state:d.state,election_active:d.election_active,
-        active_election:d.active_election,election_id:d.election_id}));
+        active_election:d.active_election,election_id:d.election_id,token:d.token}));
       if(d.election_active){
         document.getElementById("activeNote").classList.add("show");
         document.getElementById("activeElecName").textContent=d.active_election;

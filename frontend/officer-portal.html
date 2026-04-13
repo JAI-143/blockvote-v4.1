@@ -470,12 +470,27 @@ let data=null, voterList=[], vStream=null, vCaptured=null, cStream=null, cCaptur
 let hChart=null, dpChart=null, dpTimer=null, curDetailId=null;
 
 // ── Init ───────────────────────────────────────────────────────────────────
+
+// ── Auth helper — sends token header on every API call ────────────────────
+function authHeaders(extra={}) {
+  const stored = sessionStorage.getItem("officer");
+  const token = stored ? (JSON.parse(stored).token || "") : "";
+  return {"Content-Type":"application/json", "X-Officer-Token": token, ...extra};
+}
+function authFetch(url, opts={}) {
+  const stored = sessionStorage.getItem("officer");
+  const token = stored ? (JSON.parse(stored).token || "") : "";
+  opts.credentials = "include";
+  opts.headers = Object.assign({"X-Officer-Token": token}, opts.headers || {});
+  return fetch(url, opts);
+}
+
 window.addEventListener('DOMContentLoaded', async()=>{
   const stored=sessionStorage.getItem('officer');
   if(!stored){document.getElementById('authGate').style.display='flex';return;}
   const officer=JSON.parse(stored);
   try{
-    const r=await fetch('/api/officer/analytics',{credentials:'include'});
+    const r=await authFetch('/api/officer/analytics');
     if(r.status===401){sessionStorage.removeItem('officer');document.getElementById('authGate').style.display='flex';return;}
     const d=await r.json();
     if(!d.success){document.getElementById('authGate').style.display='flex';return;}
@@ -495,7 +510,7 @@ function updateClock(){
 }
 
 async function refreshData(){
-  try{const r=await fetch('/api/officer/analytics',{credentials:'include'});const d=await r.json();if(d.success){data=d;renderAll(d);}}catch(e){}
+  try{const r=await authFetch('/api/officer/analytics');const d=await r.json();if(d.success){data=d;renderAll(d);}}catch(e){}
 }
 
 function renderAll(d){
@@ -589,7 +604,7 @@ async function openDetail(id, name, status){
 async function loadDetail(){
   if(!curDetailId) return;
   try{
-    const r=await fetch(`/api/officer/election/${curDetailId}/detail`,{credentials:'include'});
+    const r=await authFetch(`/api/officer/election/${curDetailId}/detail`,{credentials:'include'});
     const d=await r.json();
     if(!d.success) return;
     document.getElementById('dpTotal').textContent=d.total_registered;
@@ -699,7 +714,7 @@ function renderVoterTable(voters){
   </tr>`).join('')||'<tr><td colspan="7" style="color:var(--muted2)">No voters registered.</td></tr>';
 }
 function filterVoters(){const q=document.getElementById('voterSearch').value.toLowerCase();renderVoterTable(voterList.filter(v=>v.name.toLowerCase().includes(q)||v.voter_id.toLowerCase().includes(q)||v.ward.toLowerCase().includes(q)));}
-async function fetchVoters(){try{const r=await fetch('/api/officer/voters',{credentials:'include'});const d=await r.json();if(d.success){voterList=d.voters;renderVoterTable(d.voters);}}catch(e){}}
+async function fetchVoters(){try{const r=await authFetch('/api/officer/voters',{credentials:'include'});const d=await r.json();if(d.success){voterList=d.voters;renderVoterTable(d.voters);}}catch(e){}}
 
 function renderWICList(wics){
   const el=document.getElementById('wicList');
@@ -722,7 +737,7 @@ async function addVoter(){
   if(!ward||!dist||!state){a.textContent='Please select state, district and ward.';a.className='alert err';return;}
   const btn=document.getElementById('btnAddVoter');btn.disabled=true;btn.textContent='Adding…';
   try{
-    const r=await fetch('/api/officer/voter',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
+    const r=await authFetch('/api/officer/voter',{method:'POST',credentials:'include',headers:authHeaders(),
       body:JSON.stringify({voter_id:document.getElementById('vId').value.trim(),name:document.getElementById('vName').value.trim(),
         dob:document.getElementById('vDob').value,phone:document.getElementById('vPhone').value.trim(),
         state,district:dist,ward,face_image:vCaptured})});
@@ -735,7 +750,7 @@ async function addVoter(){
 
 async function removeVoter(vid){
   if(!confirm(`Remove voter '${vid}'?`)) return;
-  try{const r=await fetch(`/api/officer/voter/${vid}`,{method:'DELETE',credentials:'include'});const d=await r.json();if(d.success)refreshData();else alert(d.message);}catch(e){alert('Error: '+e.message);}
+  try{const r=await authFetch(`/api/officer/voter/${vid}`,{method:'DELETE',credentials:'include'});const d=await r.json();if(d.success)refreshData();else alert(d.message);}catch(e){alert('Error: '+e.message);}
 }
 
 async function createWIC(){
@@ -745,7 +760,7 @@ async function createWIC(){
   const state=document.getElementById('wicState').value;
   if(!ward||!dist||!state){a.textContent='Please select state, district and ward.';a.className='alert err';return;}
   try{
-    const r=await fetch('/api/officer/wic',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
+    const r=await authFetch('/api/officer/wic',{method:'POST',credentials:'include',headers:authHeaders(),
       body:JSON.stringify({wic_id:document.getElementById('wicId').value.trim(),name:document.getElementById('wicName').value.trim(),
         state,district:dist,ward,password:document.getElementById('wicPw').value})});
     const d=await r.json();a.textContent=d.message;a.className='alert '+(d.success?'ok':'err');
@@ -755,7 +770,7 @@ async function createWIC(){
 
 async function deleteWIC(id,name){
   if(!confirm(`Remove WIC '${name}'?`)) return;
-  try{const r=await fetch(`/api/officer/wic/${id}`,{method:'DELETE',credentials:'include'});const d=await r.json();if(d.success)refreshData();else alert(d.message);}catch(e){alert('Error: '+e.message);}
+  try{const r=await authFetch(`/api/officer/wic/${id}`,{method:'DELETE',credentials:'include'});const d=await r.json();if(d.success)refreshData();else alert(d.message);}catch(e){alert('Error: '+e.message);}
 }
 
 async function initElection(){
@@ -776,7 +791,7 @@ async function initElection(){
   if(locType==='national'){state='';district='';}
   else if(locType==='state'){state=locVal;district='';}
   try{
-    const r=await fetch('/api/officer/init-election',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
+    const r=await authFetch('/api/officer/init-election',{method:'POST',credentials:'include',headers:authHeaders(),
       body:JSON.stringify({name,location_type:locType,location_value:locVal,state,district,
         registration_start:toIST(rs),registration_end:toIST(re),election_start:toIST(vs),election_end:toIST(ve)})});
     const d=await r.json();a.textContent=d.message;a.className='alert '+(d.success?'ok':'err');
@@ -787,7 +802,7 @@ async function initElection(){
 async function addCandidate(){
   const a=document.getElementById('candAlert');a.className='alert';
   try{
-    const r=await fetch('/api/officer/add-candidate',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
+    const r=await authFetch('/api/officer/add-candidate',{method:'POST',credentials:'include',headers:authHeaders(),
       body:JSON.stringify({election_id:document.getElementById('candElecId').value,
         voter_id:document.getElementById('candVId').value.trim(),party:document.getElementById('candParty').value.trim(),
         symbol:document.getElementById('candSymbol').value.trim(),face_image:cCaptured||''})});
@@ -809,7 +824,7 @@ function show(tab){
 }
 
 async function logout(){
-  await fetch('/api/officer/logout',{method:'POST',credentials:'include'});
+  await authFetch('/api/officer/logout',{method:'POST',credentials:'include'});
   sessionStorage.removeItem('officer');
   location.href='/officer-login';
 }

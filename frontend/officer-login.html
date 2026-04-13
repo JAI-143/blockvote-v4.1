@@ -98,7 +98,7 @@ async function doLogin(){
       credentials:"include",body:JSON.stringify({officer_id:oid,password:pw})});
     const d=await r.json();
     if(d.success){
-      sessionStorage.setItem("officer",JSON.stringify({officer_id:d.officer_id,name:d.name,designation:d.designation}));
+      sessionStorage.setItem("officer",JSON.stringify({officer_id:d.officer_id,name:d.name,designation:d.designation,token:d.token}));
       if(d.election_active){document.getElementById("electionWarn").classList.add("show");btn.textContent="Entering portal...";setTimeout(()=>{location.href="/officer-portal";},1500);}
       else{location.href="/officer-portal";}
     }else{a.textContent=d.message;a.className="alert err";btn.disabled=false;btn.textContent="Login to Officer Portal →";}
