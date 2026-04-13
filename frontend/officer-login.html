@@ -3,152 +3,120 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Election Officer Login — BlockVote</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Officer Login — BlockVote</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#05060a;--surface:#0c0e14;--border:#1a1d27;--border2:#242736;
-      --gold:#c9a84c;--gold2:#e8c97a;--text:#e8eaf0;--muted:#6b7080;--muted2:#3d4155;
-      --red:#ef5858;--green:#2dd4a0}
-body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;display:flex;flex-direction:column}
-nav{display:flex;align-items:center;justify-content:space-between;padding:0 3rem;height:60px;border-bottom:1px solid var(--border);background:rgba(5,6,10,.97)}
-.logo{font-size:.82rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;gap:.5rem}
-.logo-dot{width:7px;height:7px;background:var(--gold);border-radius:50%}
-.back{font-size:.7rem;color:var(--muted2);text-decoration:none;letter-spacing:.08em;text-transform:uppercase;transition:color .2s;font-family:'JetBrains Mono',monospace}
-.back:hover{color:var(--muted)}
-
-.page{flex:1;display:flex;align-items:center;justify-content:center;padding:3rem}
-.wrap{width:100%;max-width:400px}
-
-.label{font-size:.6rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem;font-family:'JetBrains Mono',monospace}
-.title{font-size:2rem;font-weight:800;text-transform:uppercase;letter-spacing:-.02em;line-height:1.05;margin-bottom:.4rem}
-.sub{font-size:.75rem;color:var(--muted);font-family:'JetBrains Mono',monospace;line-height:1.7;margin-bottom:2rem}
-.divider{height:1px;background:var(--border);margin-bottom:2rem}
-
-.field{margin-bottom:1.1rem}
-.field label{display:block;font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem;font-family:'JetBrains Mono',monospace}
-.field input{width:100%;padding:.78rem 1rem;background:#030407;border:1px solid var(--border2);border-radius:4px;color:var(--text);font-size:.9rem;font-family:'JetBrains Mono',monospace;outline:none;transition:border-color .2s}
-.field input:focus{border-color:var(--gold)}
-
-.btn-main{width:100%;padding:.88rem;background:var(--gold);color:#000;border:none;border-radius:4px;font-size:.82rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-family:'Syne',sans-serif;transition:background .2s}
-.btn-main:hover:not(:disabled){background:var(--gold2)}
-.btn-main:disabled{opacity:.4;cursor:not-allowed}
-
-.alert{padding:.7rem 1rem;border-radius:4px;font-size:.73rem;margin-bottom:1rem;display:none;font-family:'JetBrains Mono',monospace;line-height:1.6}
-.alert.err{background:rgba(239,88,88,.08);border:1px solid rgba(239,88,88,.2);color:#fca5a5;display:block}
-.alert.warn{background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.18);color:var(--gold);display:block}
-
-.election-warn{background:rgba(239,88,88,.05);border:1px solid rgba(239,88,88,.15);border-radius:4px;padding:.9rem 1rem;margin-top:1rem;display:none}
+:root{--bg:#f8f9fc;--surface:#fff;--border:#e2e5ed;--primary:#2563eb;
+  --primary-light:#eff6ff;--primary-border:#bfdbfe;--green:#16a34a;
+  --green-light:#f0fdf4;--green-border:#bbf7d0;--red:#dc2626;
+  --red-light:#fef2f2;--red-border:#fecaca;--amber:#d97706;
+  --amber-light:#fffbeb;--amber-border:#fde68a;--text:#0f172a;--muted:#64748b;
+  --shadow:0 1px 3px rgba(0,0,0,.08)}
+body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;min-height:100vh;display:flex;flex-direction:column}
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:60px;border-bottom:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow)}
+.logo{font-size:.88rem;font-weight:800;color:var(--primary);letter-spacing:.04em;text-transform:uppercase}
+.back{font-size:.78rem;color:var(--muted);text-decoration:none;font-weight:500;transition:color .2s}
+.back:hover{color:var(--primary)}
+.page{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:2.5rem;width:100%;max-width:440px;box-shadow:0 4px 24px rgba(0,0,0,.06)}
+.card-icon{width:52px;height:52px;background:var(--primary-light);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1.5rem}
+.card-label{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--primary);margin-bottom:.5rem}
+.card-title{font-size:1.6rem;font-weight:800;color:var(--text);margin-bottom:.4rem;letter-spacing:-.02em}
+.card-sub{font-size:.82rem;color:var(--muted);line-height:1.6;margin-bottom:1.8rem}
+.divider{height:1px;background:var(--border);margin-bottom:1.8rem}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:.72rem;font-weight:600;color:var(--text);letter-spacing:.04em;text-transform:uppercase;margin-bottom:.4rem}
+.field input{width:100%;padding:.75rem 1rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.92rem;font-family:inherit;outline:none;transition:.2s}
+.field input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.1);background:var(--surface)}
+.btn{width:100%;padding:.85rem;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.88rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;margin-top:.5rem}
+.btn:hover:not(:disabled){background:#1d4ed8}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.alert{padding:.75rem 1rem;border-radius:8px;font-size:.8rem;margin-bottom:1rem;display:none;line-height:1.5}
+.alert.err{background:var(--red-light);border:1px solid var(--red-border);color:var(--red);display:block}
+.alert.ok{background:var(--green-light);border:1px solid var(--green-border);color:var(--green);display:block}
+.election-warn{background:var(--amber-light);border:1px solid var(--amber-border);border-radius:8px;padding:.9rem 1rem;margin-top:1rem;display:none}
 .election-warn.show{display:block}
-.election-warn p{font-size:.72rem;color:#fca5a5;font-family:'JetBrains Mono',monospace;line-height:1.6}
-
-.toggle-section{margin-top:2rem;border-top:1px solid var(--border);padding-top:1.5rem}
-.toggle-btn{background:none;border:none;color:var(--muted2);font-size:.7rem;font-family:'JetBrains Mono',monospace;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;transition:color .2s;padding:0}
-.toggle-btn:hover{color:var(--muted)}
-.reg-panel{display:none;margin-top:1.5rem}
+.election-warn p{font-size:.78rem;color:var(--amber);line-height:1.6}
+.toggle-section{margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.5rem}
+.toggle-btn{background:none;border:none;color:var(--muted);font-size:.78rem;font-family:inherit;cursor:pointer;font-weight:500;padding:0;transition:color .2s}
+.toggle-btn:hover{color:var(--primary)}
+.reg-panel{display:none;margin-top:1.2rem}
 .reg-panel.show{display:block}
-
-.secure-note{display:flex;align-items:flex-start;gap:.6rem;margin-top:2rem;padding:1rem;border:1px solid var(--border);border-radius:4px;background:var(--surface)}
-.secure-note svg{flex-shrink:0;color:var(--muted2);margin-top:.1rem}
-.secure-note p{font-size:.68rem;color:var(--muted);font-family:'JetBrains Mono',monospace;line-height:1.6}
+.secure-note{display:flex;align-items:flex-start;gap:.7rem;margin-top:1.5rem;padding:.9rem 1rem;border:1px solid var(--border);border-radius:8px;background:var(--bg)}
+.secure-note svg{flex-shrink:0;color:var(--muted);margin-top:.1rem}
+.secure-note p{font-size:.75rem;color:var(--muted);line-height:1.6}
 </style>
 </head>
 <body>
 <nav>
-  <div class="logo"><div class="logo-dot"></div>BlockVote</div>
-  <a href="/" class="back">← Ward Terminal</a>
+  <div class="logo">◆ BlockVote</div>
+  <a href="/" class="back">← Public Portal</a>
 </nav>
-
 <div class="page">
-  <div class="wrap">
-    <div class="label">◆ Restricted — ECI Officials Only</div>
-    <div class="title">Election Officer<br>Login</div>
-    <p class="sub">Access to voter management, ward in-charge creation, election initialization, and full analytics. Authorized Election Commission officers only.</p>
+  <div class="card">
+    <div class="card-icon">🔐</div>
+    <div class="card-label">ECI Officials Only</div>
+    <div class="card-title">Election Officer Login</div>
+    <p class="card-sub">Access voter management, election initialization, ward in-charge creation, and full analytics.</p>
     <div class="divider"></div>
-
     <div class="alert" id="alertBox"></div>
-
     <div class="field"><label>Officer ID</label><input type="text" id="oid" placeholder="e.g. OFF001" autocomplete="off"></div>
-    <div class="field"><label>Password</label><input type="password" id="opw" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()"></div>
-    <button class="btn-main" id="loginBtn" onclick="doLogin()">Login to Officer Portal</button>
-
+    <div class="field"><label>Password</label><input type="password" id="opw" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn" id="loginBtn" onclick="doLogin()">Login to Officer Portal →</button>
     <div class="election-warn" id="electionWarn">
-      <p><strong>🔒 Active Election</strong> — Voter and candidate management is locked during an active election. Analytics and results remain accessible.</p>
+      <p>🔒 <strong>Active Election</strong> — Voter and candidate management is locked. Analytics remain accessible.</p>
     </div>
-
     <div class="toggle-section">
-      <button class="toggle-btn" onclick="toggleReg()">+ Register new officer account</button>
+      <button class="toggle-btn" onclick="document.getElementById('regPanel').classList.toggle('show')">+ Register new officer account</button>
       <div class="reg-panel" id="regPanel">
-        <div style="height:1px;background:var(--border);margin-bottom:1.2rem"></div>
+        <div style="height:1px;background:var(--border);margin:1rem 0"></div>
         <div class="field"><label>New Officer ID</label><input type="text" id="noid" placeholder="OFF002"></div>
         <div class="field"><label>Full Name</label><input type="text" id="noname" placeholder="Full name"></div>
         <div class="field"><label>Designation</label><input type="text" id="nodesig" placeholder="Returning Officer"></div>
         <div class="field"><label>Password</label><input type="password" id="nopw" placeholder="Min. 6 characters"></div>
         <div class="field"><label>ECI Authorization Code</label><input type="password" id="nocode" placeholder="Required"></div>
-        <button class="btn-main" onclick="doRegister()">Register Officer</button>
+        <button class="btn" onclick="doRegister()">Register Officer</button>
         <div class="alert" id="regAlert"></div>
       </div>
     </div>
-
     <div class="secure-note">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-      <p>All logins are logged with IST timestamps. Unauthorized access attempts are flagged and reported to the Election Commission.</p>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      <p>All logins are logged with IST timestamps. Unauthorized access attempts are flagged and reported.</p>
     </div>
   </div>
 </div>
-
 <script>
-function toggleReg(){
-  const p = document.getElementById('regPanel');
-  p.classList.toggle('show');
-}
-
 async function doLogin(){
-  const oid = document.getElementById('oid').value.trim();
-  const pw  = document.getElementById('opw').value.trim();
-  const a   = document.getElementById('alertBox'); a.className='alert';
-  if(!oid||!pw){a.textContent='Enter Officer ID and password.';a.className='alert err';return;}
-  const btn=document.getElementById('loginBtn');btn.disabled=true;btn.textContent='Verifying...';
+  const oid=document.getElementById("oid").value.trim();
+  const pw=document.getElementById("opw").value.trim();
+  const a=document.getElementById("alertBox");a.className="alert";
+  if(!oid||!pw){a.textContent="Enter Officer ID and password.";a.className="alert err";return;}
+  const btn=document.getElementById("loginBtn");btn.disabled=true;btn.textContent="Verifying...";
   try{
-    const r=await fetch('/api/officer/login',{method:'POST',headers:{'Content-Type':'application/json'},
-      credentials:'include',body:JSON.stringify({officer_id:oid,password:pw})});
+    const r=await fetch("/api/officer/login",{method:"POST",headers:{"Content-Type":"application/json"},
+      credentials:"include",body:JSON.stringify({officer_id:oid,password:pw})});
     const d=await r.json();
     if(d.success){
-      sessionStorage.setItem('officer',JSON.stringify({officer_id:d.officer_id,name:d.name,designation:d.designation}));
-      if(d.election_active){
-        document.getElementById('electionWarn').classList.add('show');
-        btn.textContent='Entering portal...';
-        setTimeout(()=>{location.href='/officer-portal';},1500);
-      } else { location.href='/officer-portal'; }
-    } else {
-      a.textContent=d.message;a.className='alert err';
-      btn.disabled=false;btn.textContent='Login to Officer Portal';
-    }
-  }catch(e){
-    a.textContent='Server error.';a.className='alert err';
-    btn.disabled=false;btn.textContent='Login to Officer Portal';
-  }
+      sessionStorage.setItem("officer",JSON.stringify({officer_id:d.officer_id,name:d.name,designation:d.designation}));
+      if(d.election_active){document.getElementById("electionWarn").classList.add("show");btn.textContent="Entering portal...";setTimeout(()=>{location.href="/officer-portal";},1500);}
+      else{location.href="/officer-portal";}
+    }else{a.textContent=d.message;a.className="alert err";btn.disabled=false;btn.textContent="Login to Officer Portal →";}
+  }catch(e){a.textContent="Server error.";a.className="alert err";btn.disabled=false;btn.textContent="Login to Officer Portal →";}
 }
-
 async function doRegister(){
-  const a=document.getElementById('regAlert');a.className='alert';
+  const a=document.getElementById("regAlert");a.className="alert";
   try{
-    const r=await fetch('/api/officer/register',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        officer_id:  document.getElementById('noid').value.trim(),
-        name:        document.getElementById('noname').value.trim(),
-        designation: document.getElementById('nodesig').value.trim(),
-        password:    document.getElementById('nopw').value,
-        secret_code: document.getElementById('nocode').value
-      })});
+    const r=await fetch("/api/officer/register",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({officer_id:document.getElementById("noid").value.trim(),
+        name:document.getElementById("noname").value.trim(),
+        designation:document.getElementById("nodesig").value.trim(),
+        password:document.getElementById("nopw").value,
+        secret_code:document.getElementById("nocode").value})});
     const d=await r.json();
-    a.textContent=d.message;a.className='alert '+(d.success?'ok':'err');
-    if(d.success){a.className='alert';a.textContent='';document.getElementById('regPanel').classList.remove('show');}
-  }catch(e){a.textContent='Error: '+e.message;a.className='alert err';}
+    a.textContent=d.message;a.className="alert "+(d.success?"ok":"err");
+  }catch(e){a.textContent="Error: "+e.message;a.className="alert err";}
 }
-
-// Alias ok class
-document.head.insertAdjacentHTML('beforeend','<style>.alert.ok{background:rgba(45,212,160,.08);border:1px solid rgba(45,212,160,.2);color:#2dd4a0;display:block}</style>');
 </script>
 </body>
 </html>
