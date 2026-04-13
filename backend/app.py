@@ -22,8 +22,19 @@ from biometric.face_auth      import FaceAuth
 IST = timezone(timedelta(hours=5, minutes=30))
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", secrets.token_hex(32))
-CORS(app, supports_credentials=True)
+app.secret_key = os.environ.get("SECRET_KEY", "blockvote-default-key-change-in-production")
+
+# ── Cookie config for HTTPS (Render/Railway deployment) ──────────────────────
+IS_PRODUCTION = os.environ.get("RENDER") or os.environ.get("RAILWAY_ENVIRONMENT")
+if IS_PRODUCTION:
+    app.config["SESSION_COOKIE_SAMESITE"] = "None"
+    app.config["SESSION_COOKIE_SECURE"]   = True
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+else:
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    app.config["SESSION_COOKIE_SECURE"]   = False
+
+CORS(app, supports_credentials=True, origins=["*"])
 
 db         = Database(BASE_DIR)
 blockchain = BlockchainUtils(BASE_DIR)
