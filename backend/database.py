@@ -25,14 +25,26 @@ def parse_ist(dt_str: str) -> datetime:
 class Database:
 
     def __init__(self, base_dir: str):
-        db_dir = os.path.join(base_dir, "database")
-        os.makedirs(db_dir, exist_ok=True)
-        self.db_path = os.path.join(db_dir, "voters.db")
+        # DATABASE_PATH env var lets you point to a persistent location
+        # (e.g. Render Disk mount path, or Railway volume)
+        # If not set, defaults to ./database/voters.db next to the project
+        custom_path = os.environ.get("DATABASE_PATH", "").strip()
+        if custom_path:
+            os.makedirs(os.path.dirname(custom_path) if os.path.dirname(custom_path) else ".", exist_ok=True)
+            self.db_path = custom_path
+        else:
+            db_dir = os.path.join(base_dir, "database")
+            os.makedirs(db_dir, exist_ok=True)
+            self.db_path = os.path.join(db_dir, "voters.db")
+        print(f"[DB] Using database: {self.db_path}")
         self._init()
 
     def _conn(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, timeout=30, check_same_thread=False)
         conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL")   # WAL mode: better concurrency
+        conn.execute("PRAGMA synchronous=NORMAL") # faster writes, still safe
+        conn.execute("PRAGMA foreign_keys=ON")
         return conn
 
     def _init(self):

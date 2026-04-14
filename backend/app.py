@@ -33,22 +33,74 @@ app.config.update(
 # credentials=True is incompatible with wildcard origin per CORS spec
 CORS(app, supports_credentials=True, origins="*")
 
-# ── Simple in-memory token store (works alongside sessions) ──────────────────
-_officer_tokens: dict = {}  # token -> officer_id
-_wic_tokens: dict     = {}  # token -> wic data dict
+# ── Token store backed by DB so tokens survive server restarts ───────────────
+# Tokens table is created lazily in database.py init
+
+def _save_token(token: str, role: str, data: str):
+    """Persist a login token to the database."""
+    try:
+        with db._conn() as c:
+            c.execute(
+                "INSERT OR REPLACE INTO auth_tokens (token, role, data, created_at) VALUES (?,?,?,?)",
+                (token, role, data, now_ist())
+            )
+    except Exception:
+        pass  # table might not exist yet on first run
+
+def _load_token(token: str) -> tuple | None:
+    """Load a token from DB. Returns (role, data) or None."""
+    if not token:
+        return None
+    try:
+        with db._conn() as c:
+            row = c.execute(
+                "SELECT role, data FROM auth_tokens WHERE token=?", (token,)
+            ).fetchone()
+        return (row["role"], row["data"]) if row else None
+    except Exception:
+        return None
+
+def _delete_token(token: str):
+    try:
+        with db._conn() as c:
+            c.execute("DELETE FROM auth_tokens WHERE token=?", (token,))
+    except Exception:
+        pass
+
+def _ensure_tokens_table():
+    """Create auth_tokens table if it doesn't exist."""
+    try:
+        with db._conn() as c:
+            c.execute("""CREATE TABLE IF NOT EXISTS auth_tokens (
+                token      TEXT PRIMARY KEY,
+                role       TEXT NOT NULL,
+                data       TEXT NOT NULL,
+                created_at TEXT DEFAULT ''
+            )""")
+    except Exception:
+        pass
+
+import json as _json
 
 def _officer_id() -> str | None:
-    """Get logged-in officer from session OR Authorization header."""
-    t = request.headers.get("X-Auth-Token", "")
-    if t and _officer_tokens.get(t):
-        return _officer_tokens[t]
+    """Get logged-in officer from session OR X-Auth-Token header (DB-backed)."""
+    t = request.headers.get("X-Auth-Token", "").strip()
+    if t:
+        row = _load_token(t)
+        if row and row[0] == "officer":
+            return row[1]
     return session.get("officer_id")
 
 def _wic_data() -> dict | None:
-    """Get logged-in WIC from session OR Authorization header."""
-    t = request.headers.get("X-Auth-Token", "")
-    if t and _wic_tokens.get(t):
-        return _wic_tokens[t]
+    """Get logged-in WIC from session OR X-Auth-Token header (DB-backed)."""
+    t = request.headers.get("X-Auth-Token", "").strip()
+    if t:
+        row = _load_token(t)
+        if row and row[0] == "wic":
+            try:
+                return _json.loads(row[1])
+            except Exception:
+                pass
     wid = session.get("wic_id")
     if wid:
         return {"wic_id": wid, "ward": session.get("wic_ward",""), "name": session.get("wic_name","")}
@@ -59,6 +111,16 @@ blockchain = BlockchainUtils(BASE_DIR)
 fraud      = FraudDetector(BASE_DIR)
 face       = FaceAuth(BASE_DIR)
 fraud.set_db(db)
+
+# Ensure auth_tokens table exists (DB-backed token persistence)
+def _post_init():
+    try:
+        _ensure_tokens_table()
+    except Exception:
+        pass
+
+import threading as _threading
+_threading.Timer(1.0, _post_init).start()
 
 FRONTEND = os.path.join(BASE_DIR, "frontend")
 
@@ -157,9 +219,9 @@ def api_wic_login():
     session["wic_id"]   = wic_id
     session["wic_ward"] = wic["ward"]
     session["wic_name"] = wic["name"]
-    import time as _t
-    tok = hashlib.sha256(f"wic:{wic_id}:{_t.time()}".encode()).hexdigest()
-    _wic_tokens[tok] = {"wic_id": wic_id, "ward": wic["ward"], "name": wic["name"]}
+    import time as _t, json as _j
+    tok = hashlib.sha256(f"wic:{wic_id}:{_t.time()}:{secrets.token_hex(4)}".encode()).hexdigest()
+    _save_token(tok, "wic", _j.dumps({"wic_id": wic_id, "ward": wic["ward"], "name": wic["name"]}))
     active, election    = db.is_election_active_now(wic["state"], wic["district"], wic["ward"])
     return jsonify({
         "success":          True,
@@ -177,7 +239,7 @@ def api_wic_login():
 @app.route("/api/wic/logout", methods=["POST"])
 def api_wic_logout():
     t = request.headers.get("X-Auth-Token","")
-    if t in _wic_tokens: del _wic_tokens[t]
+    if t: _delete_token(t)
     session.pop("wic_id",   None)
     session.pop("wic_ward", None)
     session.pop("wic_name", None)
@@ -366,8 +428,8 @@ def api_officer_login():
         return jsonify({"success": False, "message": "Invalid Officer ID or password."})
     session["officer_id"] = officer_id
     import time as _t2
-    otok = hashlib.sha256(f"off:{officer_id}:{_t2.time()}".encode()).hexdigest()
-    _officer_tokens[otok] = officer_id
+    otok = hashlib.sha256(f"off:{officer_id}:{_t2.time()}:{secrets.token_hex(4)}".encode()).hexdigest()
+    _save_token(otok, "officer", officer_id)
     active, active_election = db.is_any_election_active_now()
     return jsonify({
         "success":         True,
@@ -382,7 +444,7 @@ def api_officer_login():
 @app.route("/api/officer/logout", methods=["POST"])
 def api_officer_logout():
     t = request.headers.get("X-Auth-Token","")
-    if t in _officer_tokens: del _officer_tokens[t]
+    if t: _delete_token(t)
     session.pop("officer_id", None)
     return jsonify({"success": True})
 

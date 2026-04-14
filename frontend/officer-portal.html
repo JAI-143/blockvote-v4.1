@@ -113,21 +113,46 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5r
 .lock-box h4{font-size:.78rem;font-weight:700;color:var(--red);margin-bottom:.25rem}
 .lock-box p{font-size:.68rem;color:var(--muted);font-family:'JetBrains Mono',monospace;line-height:1.5}
 
-/* face zone */
-.fz{border:1px solid var(--border2);border-radius:5px;overflow:hidden;margin-bottom:.75rem}
-.fz-hdr{padding:.5rem .85rem;border-bottom:1px solid var(--border);font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-family:'JetBrains Mono',monospace}
-.fz-cam{position:relative;height:155px;background:#e2e8f0;display:flex;align-items:center;justify-content:center}
-.fz-cam video{width:100%;height:100%;object-fit:cover;display:none}
+/* face zone — oval capture UI */
+.fz{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:.75rem;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.fz-hdr{padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:flex;align-items:center;justify-content:space-between;background:var(--surface2)}
+.fz-mode-badge{font-size:.6rem;font-weight:700;padding:.14rem .45rem;border-radius:10px;background:var(--primary-l,#eff6ff);color:var(--primary,#2563eb);border:1px solid var(--primary-lb,#bfdbfe)}
+/* Camera viewport — dark with oval */
+.fz-cam{position:relative;background:#0f172a;overflow:hidden;min-height:200px;display:flex;align-items:center;justify-content:center}
+.fz-cam.live{aspect-ratio:4/3;min-height:0}
+.fz-cam video{width:100%;height:100%;object-fit:cover;display:none;transform:scaleX(-1)}
 .fz-cam video.on{display:block}
-.fz-cam img{width:100%;height:100%;object-fit:cover;display:none}
-.fz-cam img.on{display:block}
-.fz-ph{font-size:.7rem;color:var(--muted);font-family:'JetBrains Mono',monospace;text-align:center;padding:.5rem}
-.fz-actions{padding:.5rem .7rem;display:flex;gap:.45rem}
-.fz-btn{padding:.35rem .65rem;border:1px solid var(--border2);border-radius:3px;background:transparent;color:var(--muted);font-size:.62rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:.2s;text-transform:uppercase}
-.fz-btn:hover{border-color:var(--gold);color:var(--gold)}
-.fz-btn.pri{background:var(--gold);color:#000;border-color:var(--gold)}
-.fz-btn.pri:hover{background:var(--gold2)}
+.fz-cam img.preview{width:100%;height:100%;object-fit:cover;display:none;transform:scaleX(-1)}
+.fz-cam img.preview.on{display:block}
+/* Placeholder */
+.fz-ph{display:flex;flex-direction:column;align-items:center;gap:.7rem;padding:2.2rem 1.5rem;text-align:center}
+.fz-ph-ring{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.05);border:2px dashed rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:1.8rem}
+.fz-ph-txt{font-size:.74rem;color:rgba(255,255,255,.3);line-height:1.5}
+/* Oval overlay */
+.fz-oval-wrap{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.38);pointer-events:none}
+.fz-oval-wrap.on{display:flex}
+.fz-oval{width:110px;height:145px;border-radius:50%;border:2.5px solid rgba(255,255,255,.55);box-shadow:0 0 0 9999px rgba(0,0,0,.42);position:relative;transition:.4s}
+.fz-oval.scanning{border-color:#60a5fa;animation:fzosc 2s ease-in-out infinite}
+@keyframes fzosc{0%,100%{box-shadow:0 0 0 9999px rgba(0,0,0,.42),0 0 0 0 rgba(96,165,250,.4)}50%{box-shadow:0 0 0 9999px rgba(0,0,0,.42),0 0 0 8px rgba(96,165,250,0)}}
+.fz-oval.done{border-color:#4ade80;box-shadow:0 0 0 9999px rgba(0,0,0,.42),0 0 16px rgba(74,222,128,.4)}
+.fz-oval-hint{position:absolute;bottom:-26px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:.62rem;color:rgba(255,255,255,.5);font-weight:500}
+/* Success overlay */
+.fz-success{position:absolute;inset:0;background:rgba(0,0,0,.45);display:none;flex-direction:column;align-items:center;justify-content:center;gap:.55rem}
+.fz-success.on{display:flex}
+.fz-ok-ring{width:52px;height:52px;border-radius:50%;background:rgba(74,222,128,.15);border:2px solid #4ade80;display:flex;align-items:center;justify-content:center}
+.fz-ok-txt{font-size:.8rem;color:#fff;font-weight:700}
+/* Actions */
+.fz-actions{padding:.7rem .9rem;display:flex;gap:.5rem;background:var(--surface2);border-top:1px solid var(--border)}
+.fz-btn{padding:.42rem .75rem;border:1.5px solid var(--border2);border-radius:6px;background:var(--surface);color:var(--text2,#334155);font-size:.72rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:.2s;display:flex;align-items:center;gap:.3rem}
+.fz-btn:hover{border-color:var(--primary,#2563eb);color:var(--primary,#2563eb);background:var(--primary-l,#eff6ff)}
+.fz-btn.pri{background:var(--primary,#2563eb);color:#fff;border-color:var(--primary,#2563eb)}
+.fz-btn.pri:hover{background:var(--primary-d,#1d4ed8)}
 .fz-btn:disabled{opacity:.32;cursor:not-allowed}
+/* Status */
+.fz-status{padding:.5rem .9rem;font-size:.7rem;color:var(--muted);border-top:1px solid var(--border);display:flex;align-items:center;gap:.4rem}
+.fz-status.ok{color:#16a34a;background:#f0fdf4}
+.fz-status.err{color:#dc2626;background:#fef2f2}
+.fz-sdot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
 
 /* chart */
 .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1.1rem 1.3rem;margin-bottom:1.3rem}
@@ -325,17 +350,36 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5r
           </div>
         </div>
         <div class="fz">
-          <div class="fz-hdr">Voter Face Capture</div>
-          <div class="fz-cam">
+          <div class="fz-hdr">Voter Face Capture <span class="fz-mode-badge" id="vBioMode">Demo Mode</span></div>
+          <div class="fz-cam" id="vCamVp">
             <video id="vCamFeed" autoplay playsinline muted></video>
-            <img id="vPreview" alt="">
-            <div class="fz-ph" id="vCamPh"><span>Open camera to capture face</span></div>
+            <img class="preview" id="vPreview" alt="">
+            <!-- Oval overlay -->
+            <div class="fz-oval-wrap" id="vOvalWrap">
+              <div class="fz-oval" id="vOval">
+                <div class="fz-oval-hint">Align face here</div>
+              </div>
+            </div>
+            <!-- Success overlay -->
+            <div class="fz-success" id="vSuccess">
+              <div class="fz-ok-ring">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#4ade80" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              </div>
+              <div class="fz-ok-txt">Face Captured ✓</div>
+            </div>
+            <!-- Placeholder -->
+            <div class="fz-ph" id="vCamPh">
+              <div class="fz-ph-ring">📷</div>
+              <div class="fz-ph-txt">Click "Open Camera"<br>to capture voter face</div>
+            </div>
+            <canvas id="vCanvas" style="display:none" width="640" height="480"></canvas>
           </div>
           <div class="fz-actions">
-            <button class="fz-btn" id="vBtnOpen" onclick="openVCam()">Open Cam</button>
-            <button class="fz-btn pri" id="vBtnCap" onclick="captureVFace()" disabled>Capture</button>
-            <button class="fz-btn" id="vBtnRetake" onclick="retakeVFace()" style="display:none">Retake</button>
+            <button class="fz-btn" id="vBtnOpen" onclick="openVCam()">📹 Open Camera</button>
+            <button class="fz-btn pri" id="vBtnCap" onclick="captureVFace()" disabled>📸 Capture</button>
+            <button class="fz-btn" id="vBtnRetake" onclick="retakeVFace()" style="display:none">↺ Retake</button>
           </div>
+          <div class="fz-status" id="vFzStatus"><span class="fz-sdot"></span><span>Open camera and align face in the oval</span></div>
         </div>
         <button class="btn-sub" id="btnAddVoter" onclick="addVoter()">Add Voter</button>
         <div class="alert" id="voterAlert"></div>
@@ -449,17 +493,33 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5r
         </div>
         <div class="field"><label>Symbol (emoji or word)</label><input type="text" id="candSymbol" placeholder="🌺 or Hand, Lotus…"></div>
         <div class="fz">
-          <div class="fz-hdr">Candidate Face Verify (optional)</div>
-          <div class="fz-cam">
+          <div class="fz-hdr">Candidate Face Verify <span style="font-size:.58rem;color:var(--muted);font-weight:400">(optional)</span></div>
+          <div class="fz-cam" id="cCamVp">
             <video id="cCamFeed" autoplay playsinline muted></video>
-            <img id="cPreview" alt="">
-            <div class="fz-ph" id="cCamPh"><span>Optional: verify candidate identity</span></div>
+            <img class="preview" id="cPreview" alt="">
+            <div class="fz-oval-wrap" id="cOvalWrap">
+              <div class="fz-oval" id="cOval">
+                <div class="fz-oval-hint">Align face here</div>
+              </div>
+            </div>
+            <div class="fz-success" id="cSuccess">
+              <div class="fz-ok-ring">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#4ade80" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              </div>
+              <div class="fz-ok-txt">Face Captured ✓</div>
+            </div>
+            <div class="fz-ph" id="cCamPh">
+              <div class="fz-ph-ring">📷</div>
+              <div class="fz-ph-txt">Optional: verify<br>candidate identity</div>
+            </div>
+            <canvas id="cCanvas" style="display:none" width="640" height="480"></canvas>
           </div>
           <div class="fz-actions">
-            <button class="fz-btn" id="cBtnOpen" onclick="openCCam()">Open Cam</button>
-            <button class="fz-btn pri" id="cBtnCap" onclick="captureCFace()" disabled>Capture</button>
-            <button class="fz-btn" id="cBtnRetake" onclick="retakeCFace()" style="display:none">Retake</button>
+            <button class="fz-btn" id="cBtnOpen" onclick="openCCam()">📹 Open Camera</button>
+            <button class="fz-btn pri" id="cBtnCap" onclick="captureCFace()" disabled>📸 Capture</button>
+            <button class="fz-btn" id="cBtnRetake" onclick="retakeCFace()" style="display:none">↺ Retake</button>
           </div>
+          <div class="fz-status" id="cFzStatus"><span class="fz-sdot"></span><span>Optional face verification for candidate</span></div>
         </div>
         <button class="btn-sub" onclick="addCandidate()">Add Candidate</button>
         <div class="alert" id="candAlert"></div>
@@ -696,13 +756,67 @@ function onElecLocType(){
   }
 }
 
-// ── Voter cam ──────────────────────────────────────────────────────────────
-async function openVCam(){try{vStream=await navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:'user'}});const v=document.getElementById('vCamFeed');v.srcObject=vStream;v.classList.add('on');document.getElementById('vCamPh').style.display='none';document.getElementById('vBtnCap').disabled=false;document.getElementById('vBtnOpen').disabled=true;}catch(e){alert('Camera error: '+e.message);}}
-function captureVFace(){const v=document.getElementById('vCamFeed');const c=document.createElement('canvas');c.width=640;c.height=480;c.getContext('2d').drawImage(v,0,0);vCaptured=c.toDataURL('image/jpeg',.85).split(',')[1];const img=document.getElementById('vPreview');img.src='data:image/jpeg;base64,'+vCaptured;img.classList.add('on');v.classList.remove('on');document.getElementById('vBtnCap').style.display='none';document.getElementById('vBtnRetake').style.display='block';if(vStream){vStream.getTracks().forEach(t=>t.stop());vStream=null;}}
-function retakeVFace(){vCaptured=null;document.getElementById('vPreview').classList.remove('on');document.getElementById('vCamFeed').classList.remove('on');document.getElementById('vBtnCap').style.display='block';document.getElementById('vBtnRetake').style.display='none';document.getElementById('vBtnCap').disabled=true;document.getElementById('vBtnOpen').disabled=false;}
-async function openCCam(){try{cStream=await navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:'user'}});const v=document.getElementById('cCamFeed');v.srcObject=cStream;v.classList.add('on');document.getElementById('cCamPh').style.display='none';document.getElementById('cBtnCap').disabled=false;document.getElementById('cBtnOpen').disabled=true;}catch(e){alert('Camera error: '+e.message);}}
-function captureCFace(){const v=document.getElementById('cCamFeed');const c=document.createElement('canvas');c.width=640;c.height=480;c.getContext('2d').drawImage(v,0,0);cCaptured=c.toDataURL('image/jpeg',.85).split(',')[1];const img=document.getElementById('cPreview');img.src='data:image/jpeg;base64,'+cCaptured;img.classList.add('on');v.classList.remove('on');document.getElementById('cBtnCap').style.display='none';document.getElementById('cBtnRetake').style.display='block';if(cStream){cStream.getTracks().forEach(t=>t.stop());cStream=null;}}
-function retakeCFace(){cCaptured=null;document.getElementById('cPreview').classList.remove('on');document.getElementById('cCamFeed').classList.remove('on');document.getElementById('cBtnCap').style.display='block';document.getElementById('cBtnRetake').style.display='none';document.getElementById('cBtnCap').disabled=true;document.getElementById('cBtnOpen').disabled=false;}
+// ── Voter cam — oval UI ────────────────────────────────────────────────────
+function setVStatus(msg,cls){const el=document.getElementById('vFzStatus');el.innerHTML=`<span class="fz-sdot"></span><span>${msg}</span>`;el.className='fz-status'+(cls?' '+cls:'');}
+async function openVCam(){
+  try{
+    vStream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},facingMode:'user'}});
+    const v=document.getElementById('vCamFeed');v.srcObject=vStream;v.classList.add('on');
+    document.getElementById('vCamVp').classList.add('live');
+    document.getElementById('vCamPh').style.display='none';
+    document.getElementById('vOvalWrap').classList.add('on');
+    document.getElementById('vOval').classList.add('scanning');
+    document.getElementById('vBtnCap').disabled=false;
+    document.getElementById('vBtnOpen').disabled=true;
+    setVStatus('Camera active — align face in the oval','');
+    // Load bio mode badge
+    try{const b=await fetch('/api/biometric/status');const bd=await b.json();document.getElementById('vBioMode').textContent=bd.mode==='FACE_RECOGNITION'?'🟢 Real Face ID':'🟡 Demo Mode';}catch(e){}
+  }catch(e){setVStatus('Camera error: '+e.message,'err');}
+}
+function captureVFace(){
+  const v=document.getElementById('vCamFeed');
+  const c=document.getElementById('vCanvas');
+  c.getContext('2d').drawImage(v,0,0,640,480);
+  vCaptured=c.toDataURL('image/jpeg',.85).split(',')[1];
+  const img=document.getElementById('vPreview');img.src='data:image/jpeg;base64,'+vCaptured;img.classList.add('on');
+  v.classList.remove('on');
+  document.getElementById('vOvalWrap').classList.remove('on');
+  document.getElementById('vSuccess').classList.add('on');
+  document.getElementById('vBtnCap').style.display='none';
+  document.getElementById('vBtnRetake').style.display='block';
+  setVStatus('Face captured successfully!','ok');
+  if(vStream){vStream.getTracks().forEach(t=>t.stop());vStream=null;}
+}
+function retakeVFace(){vCaptured=null;document.getElementById('vPreview').classList.remove('on');document.getElementById('vCamFeed').classList.remove('on');document.getElementById('vOvalWrap').classList.remove('on');document.getElementById('vOval').classList.remove('scanning');document.getElementById('vSuccess').classList.remove('on');document.getElementById('vCamVp').classList.remove('live');document.getElementById('vCamPh').style.display='flex';document.getElementById('vBtnCap').style.display='block';document.getElementById('vBtnCap').disabled=true;document.getElementById('vBtnRetake').style.display='none';document.getElementById('vBtnOpen').disabled=false;setVStatus('Open camera and align face in the oval','');}
+function setCStatus(msg,cls){const el=document.getElementById('cFzStatus');el.innerHTML=`<span class="fz-sdot"></span><span>${msg}</span>`;el.className='fz-status'+(cls?' '+cls:'');}
+async function openCCam(){
+  try{
+    cStream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},facingMode:'user'}});
+    const v=document.getElementById('cCamFeed');v.srcObject=cStream;v.classList.add('on');
+    document.getElementById('cCamVp').classList.add('live');
+    document.getElementById('cCamPh').style.display='none';
+    document.getElementById('cOvalWrap').classList.add('on');
+    document.getElementById('cOval').classList.add('scanning');
+    document.getElementById('cBtnCap').disabled=false;
+    document.getElementById('cBtnOpen').disabled=true;
+    setCStatus('Camera active — align face in the oval','');
+  }catch(e){setCStatus('Camera error: '+e.message,'err');}
+}
+function captureCFace(){
+  const v=document.getElementById('cCamFeed');
+  const c=document.getElementById('cCanvas');
+  c.getContext('2d').drawImage(v,0,0,640,480);
+  cCaptured=c.toDataURL('image/jpeg',.85).split(',')[1];
+  const img=document.getElementById('cPreview');img.src='data:image/jpeg;base64,'+cCaptured;img.classList.add('on');
+  v.classList.remove('on');
+  document.getElementById('cOvalWrap').classList.remove('on');
+  document.getElementById('cSuccess').classList.add('on');
+  document.getElementById('cBtnCap').style.display='none';
+  document.getElementById('cBtnRetake').style.display='block';
+  setCStatus('Face captured!','ok');
+  if(cStream){cStream.getTracks().forEach(t=>t.stop());cStream=null;}
+}
+function retakeCFace(){cCaptured=null;document.getElementById('cPreview').classList.remove('on');document.getElementById('cCamFeed').classList.remove('on');document.getElementById('cOvalWrap').classList.remove('on');document.getElementById('cOval').classList.remove('scanning');document.getElementById('cSuccess').classList.remove('on');document.getElementById('cCamVp').classList.remove('live');document.getElementById('cCamPh').style.display='flex';document.getElementById('cBtnCap').style.display='block';document.getElementById('cBtnCap').disabled=true;document.getElementById('cBtnRetake').style.display='none';document.getElementById('cBtnOpen').disabled=false;setCStatus('Optional face verification for candidate','');}
 
 // ── Voter table ────────────────────────────────────────────────────────────
 function renderVoterTable(voters){
