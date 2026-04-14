@@ -14,7 +14,7 @@ sys.path.insert(0, BASE_DIR)
 from flask import Flask, request, jsonify, send_from_directory, session, Response
 from flask_cors import CORS
 
-from backend.database       import now_ist, parse_ist
+from backend.database       import Database, now_ist, parse_ist
 from backend.blockchain_utils import BlockchainUtils
 from backend.fraud_detection  import FraudDetector
 from biometric.face_auth      import FaceAuth

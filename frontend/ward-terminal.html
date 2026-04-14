@@ -4,182 +4,185 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Ward Terminal — BlockVote</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#f8f9fc;--surface:#ffffff;--border:#e2e5ed;--border2:#d0d4df;
-  --primary:#2563eb;--primary-light:#eff6ff;--primary-border:#bfdbfe;
-  --green:#16a34a;--green-light:#f0fdf4;--green-border:#bbf7d0;
-  --red:#dc2626;--red-light:#fef2f2;--red-border:#fecaca;
-  --amber:#d97706;--amber-light:#fffbeb;--amber-border:#fde68a;
-  --text:#0f172a;--text2:#334155;--muted:#64748b;--muted2:#94a3b8;
-  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
-  --shadow-md:0 4px 6px -1px rgba(0,0,0,.07),0 2px 4px -2px rgba(0,0,0,.05);
+  --bg:#05060a;--surface:#0c0e14;--surface2:#10121a;--border:#1a1d27;--border2:#242736;
+  --gold:#c9a84c;--gold2:#e8c97a;--gold-dim:rgba(201,168,76,0.1);
+  --text:#e8eaf0;--muted:#6b7080;--muted2:#3d4155;
+  --green:#2dd4a0;--red:#ef5858;--blue:#5b8dee;
 }
-body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;min-height:100vh}
-#authGate{position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:999}
-.gate-card{background:var(--surface);border-radius:16px;padding:2.5rem;text-align:center;max-width:380px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.15)}
-.gate-icon{font-size:2.5rem;margin-bottom:1rem}
-.gate-title{font-size:1.2rem;font-weight:700;color:var(--text);margin-bottom:.4rem}
-.gate-sub{font-size:.83rem;color:var(--muted);line-height:1.6;margin-bottom:1.5rem}
-.gate-btn{display:inline-block;padding:.75rem 2rem;background:var(--primary);color:#fff;border-radius:8px;font-weight:600;text-decoration:none;font-size:.85rem;transition:.2s}
-.gate-btn:hover{background:#1d4ed8}
-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--shadow)}
-.nav-logo{font-size:.88rem;font-weight:800;color:var(--primary);letter-spacing:.04em;text-transform:uppercase}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh}
+
+/* nav */
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:60px;border-bottom:1px solid var(--border);background:rgba(5,6,10,.97);position:sticky;top:0;z-index:100}
+.nav-logo{font-size:.82rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;gap:.5rem}
+.nav-logo .dot{width:7px;height:7px;background:var(--gold);border-radius:50%}
 .nav-center{display:flex;align-items:center;gap:.8rem}
-.ward-badge{background:var(--primary-light);border:1px solid var(--primary-border);color:var(--primary);font-size:.72rem;font-weight:600;padding:.25rem .75rem;border-radius:20px}
-.wic-name{font-size:.78rem;color:var(--muted);font-weight:500}
+.ward-badge{background:var(--gold-dim);border:1px solid rgba(201,168,76,.2);color:var(--gold);font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.25rem .7rem;border-radius:3px;font-family:'JetBrains Mono',monospace}
+.wic-name{font-size:.72rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
 .nav-right{display:flex;align-items:center;gap:1rem}
-.live-badge{display:flex;align-items:center;gap:.35rem;font-size:.72rem;color:var(--green);font-weight:600}
-.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:bl 1.5s infinite}
+.live-badge{display:flex;align-items:center;gap:.35rem;font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--green);font-family:'JetBrains Mono',monospace}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:bl 1.4s infinite}
 @keyframes bl{0%,100%{opacity:1}50%{opacity:.3}}
-.clock{font-size:.75rem;color:var(--muted);font-family:monospace}
-.btn-logout{padding:.4rem 1rem;background:transparent;border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-size:.78rem;font-weight:500;cursor:pointer;font-family:inherit;transition:.2s}
+.clock{font-size:.7rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.btn-logout{padding:.3rem .8rem;background:transparent;border:1px solid var(--border2);border-radius:3px;color:var(--muted);font-size:.7rem;cursor:pointer;font-family:'Syne',sans-serif;transition:.2s;letter-spacing:.06em;text-transform:uppercase}
 .btn-logout:hover{border-color:var(--red);color:var(--red)}
-.election-banner{background:var(--green-light);border-bottom:1px solid var(--green-border);padding:.7rem 2rem;display:none;align-items:center;justify-content:space-between}
+
+/* election banner */
+.election-banner{display:none;background:rgba(45,212,160,.05);border-bottom:1px solid rgba(45,212,160,.15);padding:.7rem 2rem;display:flex;align-items:center;justify-content:space-between}
 .eb-left{display:flex;align-items:center;gap:.8rem}
-.eb-live{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--green);background:var(--green-light);border:1px solid var(--green-border);padding:.2rem .55rem;border-radius:4px}
-.eb-name{font-size:.85rem;font-weight:600;color:var(--text)}
-.eb-end{font-size:.75rem;color:var(--muted)}
-.no-election-banner{background:var(--amber-light);border-bottom:1px solid var(--amber-border);padding:.7rem 2rem;font-size:.8rem;color:var(--amber);display:none;text-align:center;font-weight:500}
+.eb-live{font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--green);font-family:'JetBrains Mono',monospace;border:1px solid rgba(45,212,160,.3);padding:.2rem .5rem;border-radius:2px}
+.eb-name{font-size:.82rem;font-weight:700}
+.eb-end{font-size:.7rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.no-election-banner{background:rgba(201,168,76,.05);border-bottom:1px solid rgba(201,168,76,.15);padding:.7rem 2rem;font-size:.78rem;color:var(--muted);text-align:center;font-family:'JetBrains Mono',monospace}
+
+/* layout */
 .layout{display:grid;grid-template-columns:1fr 300px;min-height:calc(100vh - 60px)}
-.main{padding:2rem}
-.sidebar{background:var(--surface);border-left:1px solid var(--border);padding:1.5rem;overflow-y:auto}
+.main{padding:2rem;border-right:1px solid var(--border)}
+.sidebar{background:var(--surface);padding:1.5rem}
+
+/* panel system */
 .panel{display:none}.panel.show{display:block}
-.section-title{font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.3rem}
-.section-sub{font-size:.82rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.5}
+
+/* voter id step */
+.step-title{font-size:1.1rem;font-weight:800;text-transform:uppercase;letter-spacing:-.01em;margin-bottom:.3rem}
+.step-sub{font-size:.75rem;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:1.5rem}
+
 .field{margin-bottom:1rem}
-.field label{display:block;font-size:.72rem;font-weight:600;color:var(--text2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:.4rem}
-.field input{width:100%;padding:.72rem 1rem;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:.92rem;font-family:inherit;outline:none;transition:.2s;box-shadow:var(--shadow)}
-.field input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
-/* Face Capture */
-.face-capture-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:1.2rem;box-shadow:var(--shadow-md)}
-.fcc-header{padding:1rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:#fafbfc}
-.fcc-title{font-size:.85rem;font-weight:600;color:var(--text);display:flex;align-items:center;gap:.5rem}
-.fcc-mode{font-size:.68rem;font-weight:600;padding:.2rem .6rem;border-radius:20px;background:var(--primary-light);color:var(--primary);border:1px solid var(--primary-border)}
-.cam-viewport{position:relative;background:#0f172a;min-height:220px;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.cam-viewport.live{min-height:0;aspect-ratio:4/3}
-.cam-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.8rem;padding:2.5rem;background:linear-gradient(135deg,#0f172a,#1e293b);width:100%}
-.cam-ph-icon{width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.05);border:2px dashed rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:2.2rem}
-.cam-ph-text{font-size:.82rem;color:rgba(255,255,255,.35);text-align:center;line-height:1.6}
-.cam-ph-hint{font-size:.7rem;color:rgba(255,255,255,.2)}
-video.cam-video{width:100%;height:100%;object-fit:cover;display:none;transform:scaleX(-1)}
-video.cam-video.on{display:block}
-.cam-overlay{position:absolute;inset:0;pointer-events:none}
-.oval-wrap{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.35)}
-.oval-wrap.on{display:flex}
-.face-oval{width:150px;height:195px;border-radius:50%;border:3px solid rgba(255,255,255,.55);box-shadow:0 0 0 9999px rgba(0,0,0,.4);position:relative;transition:.4s}
-.face-oval.scanning{border-color:#60a5fa;animation:pulse 2s ease-in-out infinite}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 9999px rgba(0,0,0,.4),0 0 0 0 rgba(96,165,250,.4)}50%{box-shadow:0 0 0 9999px rgba(0,0,0,.4),0 0 0 8px rgba(96,165,250,0)}}
-.face-oval.captured{border-color:#4ade80;box-shadow:0 0 0 9999px rgba(0,0,0,.4),0 0 20px rgba(74,222,128,.5)}
-.oval-hint{position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:.68rem;color:rgba(255,255,255,.6);font-weight:500}
-.corner{position:absolute;width:18px;height:18px}
-.corner.tl{top:-2px;left:-2px;border-top:3px solid #60a5fa;border-left:3px solid #60a5fa;border-radius:3px 0 0 0}
-.corner.tr{top:-2px;right:-2px;border-top:3px solid #60a5fa;border-right:3px solid #60a5fa;border-radius:0 3px 0 0}
-.corner.bl{bottom:-2px;left:-2px;border-bottom:3px solid #60a5fa;border-left:3px solid #60a5fa;border-radius:0 0 0 3px}
-.corner.br{bottom:-2px;right:-2px;border-bottom:3px solid #60a5fa;border-right:3px solid #60a5fa;border-radius:0 0 3px 0}
-.cam-preview-img{width:100%;height:100%;object-fit:cover;display:none;transform:scaleX(-1)}
-.cam-preview-img.on{display:block}
-.cap-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;flex-direction:column;gap:.8rem}
-.cap-overlay.on{display:flex}
-.cap-ok-ring{width:60px;height:60px;border-radius:50%;background:rgba(74,222,128,.15);border:3px solid #4ade80;display:flex;align-items:center;justify-content:center}
-.cap-ok-text{font-size:.88rem;color:#fff;font-weight:700}
-canvas.ch{display:none}
-.face-btns{padding:1rem 1.4rem;display:flex;gap:.7rem;background:#fafbfc;border-top:1px solid var(--border)}
-.btn-f{padding:.62rem 1.1rem;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text2);font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s;display:flex;align-items:center;gap:.4rem;white-space:nowrap}
-.btn-f:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
-.btn-f.pri{background:var(--primary);color:#fff;border-color:var(--primary)}
-.btn-f.pri:hover{background:#1d4ed8}
-.btn-f:disabled{opacity:.4;cursor:not-allowed}
-.face-status{padding:.65rem 1.4rem;font-size:.76rem;color:var(--muted);border-top:1px solid var(--border);display:flex;align-items:center;gap:.5rem}
-.face-status.ok{color:var(--green);background:var(--green-light)}
-.face-status.err{color:var(--red);background:var(--red-light)}
-.fsdot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
-.face-tips{padding:.7rem 1.4rem;background:#fffbeb;border-top:1px solid #fde68a;display:flex;gap:1.2rem;flex-wrap:wrap}
-.face-tip{font-size:.7rem;color:var(--amber)}
-/* Voter card */
-.voter-card{background:var(--surface);border:1px solid var(--green-border);border-radius:12px;padding:1.2rem 1.5rem;margin-bottom:1.2rem;box-shadow:var(--shadow)}
-.vc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem}
-.v-badge{background:var(--green-light);color:var(--green);font-size:.68rem;font-weight:700;padding:.2rem .6rem;border-radius:20px;border:1px solid var(--green-border)}
-.v-id{font-size:.75rem;color:var(--muted);font-family:monospace}
-.v-name{font-size:1.25rem;font-weight:700;color:var(--text);margin-bottom:.5rem}
-.v-meta{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.8rem}
-.vm-i{background:var(--bg);border-radius:6px;padding:.6rem .8rem;border:1px solid var(--border)}
-.vm-l{font-size:.65rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.2rem}
-.vm-v{font-size:.82rem;font-weight:600;color:var(--text);word-break:break-all}
-/* Election card */
-.elec-card{background:var(--primary-light);border:1px solid var(--primary-border);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.2rem;display:flex;align-items:center;gap:.8rem}
-.elec-icon{width:38px;height:38px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.1rem}
-.elec-lbl{font-size:.68rem;font-weight:600;color:var(--primary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.2rem}
-.elec-name{font-size:.9rem;font-weight:700;color:var(--text)}
-.elec-end{font-size:.72rem;color:var(--muted)}
-/* Candidates */
-.cands-hdr{font-size:.72rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.8rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
-.candidates-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.8rem;margin-bottom:1.2rem}
-.cand-card{background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:1.2rem;text-align:center;cursor:pointer;transition:all .2s;box-shadow:var(--shadow)}
-.cand-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:var(--shadow-md)}
-.cand-card.selected{border-color:var(--primary);background:var(--primary-light);transform:translateY(-2px);box-shadow:var(--shadow-md)}
-.cand-sym{font-size:2.5rem;margin-bottom:.6rem}
-.cand-nm{font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:.2rem}
-.cand-pt{font-size:.72rem;color:var(--muted)}
-.cand-chk{width:22px;height:22px;border-radius:50%;background:var(--primary);display:none;align-items:center;justify-content:center;margin:.5rem auto 0}
-.cand-card.selected .cand-chk{display:flex}
-/* Success */
-.success-card{background:var(--surface);border:1px solid var(--green-border);border-radius:16px;padding:2.5rem;text-align:center;box-shadow:var(--shadow-md)}
-.s-icon{width:72px;height:72px;border-radius:50%;background:var(--green-light);border:3px solid var(--green-border);display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem;font-size:2rem}
-.s-title{font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:.4rem}
-.s-sub{font-size:.82rem;color:var(--muted);margin-bottom:1.2rem;line-height:1.6}
-.tx-box{background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:.8rem 1rem;font-family:monospace;font-size:.72rem;color:var(--text2);word-break:break-all;text-align:left;margin-bottom:1rem}
-.tx-lbl{font-size:.65rem;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:.3rem}
-.mode-badge{display:inline-block;font-size:.68rem;font-weight:600;padding:.2rem .6rem;border-radius:20px;margin-bottom:.8rem}
-.mode-badge.bc{background:var(--green-light);color:var(--green);border:1px solid var(--green-border)}
-.mode-badge.sim{background:var(--amber-light);color:var(--amber);border:1px solid var(--amber-border)}
-/* No election */
-.no-el{text-align:center;padding:3rem 2rem;background:var(--surface);border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow)}
-.ne-icon{font-size:3rem;margin-bottom:1rem}
-.ne-title{font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.5rem}
-.ne-sub{font-size:.82rem;color:var(--muted);line-height:1.7}
-/* Buttons */
-.btn-primary{width:100%;padding:.85rem;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:.88rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;letter-spacing:.02em;margin-top:.5rem;box-shadow:0 1px 2px rgba(37,99,235,.3)}
-.btn-primary:hover:not(:disabled){background:#1d4ed8}
+.field label{display:block;font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem;font-family:'JetBrains Mono',monospace}
+.field input{width:100%;padding:.8rem 1rem;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-size:.95rem;font-family:'JetBrains Mono',monospace;outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--gold)}
+
+/* face zone */
+.face-zone{border:1px solid var(--border2);border-radius:6px;overflow:hidden;margin-bottom:1.2rem;background:var(--surface2)}
+.fz-header{padding:.7rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.fz-title{font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.fz-mode{font-size:.6rem;padding:.15rem .5rem;border-radius:2px;font-weight:700;font-family:'JetBrains Mono',monospace;background:rgba(91,141,238,.1);border:1px solid rgba(91,141,238,.2);color:var(--blue)}
+.cam-wrap{position:relative;aspect-ratio:4/3;background:#000;display:flex;align-items:center;justify-content:center;max-height:260px}
+.cam-wrap video{width:100%;height:100%;object-fit:cover;display:none}
+.cam-wrap video.on{display:block}
+.cam-ph{text-align:center;padding:2rem}
+.cam-ph p{font-size:.75rem;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:.5rem}
+.face-oval-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;display:none}
+.face-oval-wrap.on{display:flex}
+.face-oval{width:110px;height:145px;border:2px solid rgba(201,168,76,.5);border-radius:50%;box-shadow:0 0 0 9999px rgba(0,0,0,.35)}
+.face-oval-wrap.ok .face-oval{border-color:var(--green);box-shadow:0 0 0 9999px rgba(0,0,0,.35),0 0 16px rgba(45,212,160,.3)}
+.preview-img{width:100%;height:100%;object-fit:cover;display:none}
+.preview-img.on{display:block}
+.cap-badge{position:absolute;bottom:.6rem;left:50%;transform:translateX(-50%);background:rgba(45,212,160,.9);color:#000;font-size:.62rem;font-weight:700;padding:.22rem .6rem;border-radius:2px;letter-spacing:.08em;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+.canvas-h{display:none}
+.fz-actions{padding:.7rem .9rem;display:flex;gap:.5rem}
+.btn-cam{flex:1;padding:.55rem .7rem;border:1px solid var(--border2);border-radius:3px;background:transparent;color:var(--muted);font-size:.7rem;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:.2s;letter-spacing:.06em;text-transform:uppercase}
+.btn-cam:hover{border-color:var(--gold);color:var(--gold)}
+.btn-cam.pri{background:var(--gold);color:#000;border-color:var(--gold)}
+.btn-cam.pri:hover{background:var(--gold2)}
+.btn-cam:disabled{opacity:.35;cursor:not-allowed}
+.fz-status{padding:.5rem 1rem;border-top:1px solid var(--border);font-size:.7rem;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:.4rem;color:var(--muted)}
+.fz-status.ok{color:var(--green)}.fz-status.err{color:var(--red)}
+.sdot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+/* buttons */
+.btn-primary{width:100%;padding:.85rem;background:var(--gold);color:#000;border:none;border-radius:4px;font-size:.82rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-family:'Syne',sans-serif;transition:background .2s}
+.btn-primary:hover:not(:disabled){background:var(--gold2)}
 .btn-primary:disabled{opacity:.4;cursor:not-allowed}
-.btn-ghost{width:100%;padding:.78rem;background:transparent;border:1px solid var(--border2);border-radius:10px;color:var(--muted);font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s;margin-top:.5rem}
-.btn-ghost:hover{border-color:var(--primary);color:var(--primary)}
-.alert{padding:.75rem 1rem;border-radius:8px;font-size:.8rem;margin-top:.8rem;display:none;line-height:1.5}
-.alert.err{background:var(--red-light);border:1px solid var(--red-border);color:var(--red);display:block}
-.alert.ok{background:var(--green-light);border:1px solid var(--green-border);color:var(--green);display:block}
-/* Sidebar */
-.sb-lbl{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.8rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
-.sb-ward{font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:1rem}
-.stat-cards{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem}
-.stat-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.8rem}
-.stat-num{font-size:1.6rem;font-weight:800;color:var(--primary)}
-.stat-num.g{color:var(--green)}
-.stat-lbl{font-size:.65rem;color:var(--muted);margin-top:.1rem;font-weight:500}
-.prog-wrap{height:6px;background:var(--border);border-radius:999px;overflow:hidden;margin-bottom:.4rem}
-.prog-fill{height:100%;background:var(--green);border-radius:999px;transition:width .8s ease}
-.prog-pct{font-size:.72rem;color:var(--muted);margin-bottom:1rem}
-.log-hdr{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.8rem}
-.log-item{display:flex;gap:.7rem;padding:.6rem 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.btn-ghost{width:100%;padding:.7rem;background:transparent;border:1px solid var(--border2);border-radius:4px;color:var(--muted);font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif;transition:.2s;margin-top:.5rem;letter-spacing:.06em;text-transform:uppercase}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+
+/* alert */
+.alert{padding:.7rem 1rem;border-radius:4px;font-size:.75rem;margin-top:.8rem;display:none;font-family:'JetBrains Mono',monospace;line-height:1.6}
+.alert.err{background:rgba(239,88,88,.08);border:1px solid rgba(239,88,88,.2);color:#fca5a5;display:block}
+.alert.ok{background:rgba(45,212,160,.08);border:1px solid rgba(45,212,160,.2);color:var(--green);display:block}
+
+/* voter verified card */
+.voter-card{border:1px solid var(--border2);border-radius:6px;padding:1.2rem 1.5rem;background:var(--surface);margin-bottom:1.5rem}
+.voter-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.voter-verified-badge{font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--green);background:rgba(45,212,160,.08);border:1px solid rgba(45,212,160,.2);padding:.2rem .6rem;border-radius:2px;font-family:'JetBrains Mono',monospace}
+.voter-name{font-size:1.3rem;font-weight:800;letter-spacing:-.02em;margin-bottom:.2rem}
+.voter-id-show{font-size:.72rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.voter-meta{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.8rem}
+.vm-item{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:3px;padding:.5rem .7rem}
+.vm-label{font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:.15rem;font-family:'JetBrains Mono',monospace}
+.vm-val{font-size:.78rem;font-family:'JetBrains Mono',monospace}
+
+/* election active card */
+.election-card{border:1px solid rgba(201,168,76,.2);border-radius:6px;padding:1rem 1.2rem;background:var(--gold-dim);margin-bottom:1.5rem;display:flex;align-items:center;gap:.8rem}
+.election-card svg{flex-shrink:0;color:var(--gold)}
+.ec-info .ec-label{font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.ec-info .ec-name{font-size:.9rem;font-weight:700;margin-top:.1rem}
+.ec-info .ec-end{font-size:.68rem;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:.2rem}
+
+/* candidates */
+.candidates-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1.2rem}
+.cand-card{border:1px solid var(--border2);border-radius:6px;padding:1.2rem;background:var(--surface);cursor:pointer;transition:all .2s;position:relative}
+.cand-card:hover{border-color:var(--gold);background:var(--gold-dim)}
+.cand-card.selected{border-color:var(--gold);background:var(--gold-dim)}
+.cand-card.selected::after{content:'✓';position:absolute;top:.7rem;right:.9rem;font-size:.8rem;color:var(--gold);font-weight:700}
+.cand-symbol{font-size:1.8rem;margin-bottom:.5rem}
+.cand-name{font-size:.9rem;font-weight:700;margin-bottom:.2rem}
+.cand-party{font-size:.7rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+
+/* vote success */
+.vote-success{text-align:center;padding:2rem}
+.success-icon{width:64px;height:64px;border-radius:50%;background:rgba(45,212,160,.12);border:1px solid rgba(45,212,160,.2);display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem}
+.vote-success h2{font-size:1.4rem;font-weight:800;text-transform:uppercase;letter-spacing:-.02em;margin-bottom:.4rem}
+.vote-success p{font-size:.78rem;color:var(--muted);font-family:'JetBrains Mono',monospace;line-height:1.7;margin-bottom.5rem}
+.tx-box{background:var(--surface2);border:1px solid var(--border2);border-radius:4px;padding:.7rem 1rem;margin:1rem 0;font-size:.7rem;font-family:'JetBrains Mono',monospace;color:var(--gold);word-break:break-all;text-align:left}
+.tx-label{font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.2rem}
+.mode-badge{font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .6rem;border-radius:2px;font-family:'JetBrains Mono',monospace}
+.mode-badge.bc{background:rgba(45,212,160,.1);border:1px solid rgba(45,212,160,.2);color:var(--green)}
+.mode-badge.sim{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);color:var(--gold)}
+
+/* sidebar */
+.sb-label{font-size:.58rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);margin-bottom:.8rem;font-family:'JetBrains Mono',monospace}
+.sb-title{font-size:1rem;font-weight:800;text-transform:uppercase;letter-spacing:-.01em;margin-bottom:1.5rem}
+.stat-row{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1rem}
+.stat-big{font-size:2rem;font-weight:800;letter-spacing:-.04em;color:var(--text)}
+.stat-big.gold{color:var(--gold)}
+.stat-label{font-size:.62rem;color:var(--muted);font-family:'JetBrains Mono',monospace;text-align:right}
+.prog-outer{height:3px;background:var(--border2);border-radius:999px;overflow:hidden;margin-bottom:1.5rem}
+.prog-inner{height:100%;background:var(--gold);border-radius:999px;transition:width 1s}
+.sb-divider{height:1px;background:var(--border);margin-bottom:1.2rem}
+
+.log-title{font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:.7rem;font-family:'JetBrains Mono',monospace}
+.log-list{display:flex;flex-direction:column;gap:.4rem;max-height:320px;overflow-y:auto}
+.log-item{display:flex;align-items:flex-start;gap:.6rem;font-size:.68rem;font-family:'JetBrains Mono',monospace;padding:.4rem 0;border-bottom:1px solid var(--border)}
 .log-item:last-child{border-bottom:none}
-.log-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:.3rem;background:var(--muted2)}
+.log-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:.3rem}
 .log-dot.voted{background:var(--green)}
-.log-name{font-size:.78rem;font-weight:600;color:var(--text)}
-.log-meta{font-size:.68rem;color:var(--muted)}
+.log-dot.reg{background:var(--gold)}
+.log-name{color:var(--text);font-size:.68rem;line-height:1.4}
+.log-action{color:var(--muted);font-size:.62rem}
+.log-time{color:var(--muted2);font-size:.6rem}
+
+/* no election state */
+.no-election-state{padding:3rem 2rem;text-align:center}
+.ne-icon{font-size:2.5rem;margin-bottom:1rem;opacity:.4}
+.ne-title{font-size:1rem;font-weight:800;text-transform:uppercase;letter-spacing:-.01em;margin-bottom:.5rem}
+.ne-sub{font-size:.75rem;color:var(--muted);font-family:'JetBrains Mono',monospace;line-height:1.7}
+
+/* access gate */
+#authGate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999}
+.gate-card{text-align:center;max-width:360px;padding:2rem}
+.gate-title{font-size:1.3rem;font-weight:800;text-transform:uppercase;margin-bottom:.5rem}
+.gate-sub{font-size:.78rem;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:1.5rem;line-height:1.6}
+.gate-btn{display:inline-block;padding:.8rem 2rem;background:var(--gold);color:#000;border-radius:4px;font-weight:700;text-decoration:none;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase}
 </style>
 </head>
 <body>
+
 <div id="authGate">
   <div class="gate-card">
-    <div class="gate-icon">🔐</div>
-    <div class="gate-title">Terminal Locked</div>
-    <p class="gate-sub">This terminal requires Ward In-Charge login. Please login first.</p>
-    <a href="/ward-login" class="gate-btn">Ward In-Charge Login →</a>
+    <div style="font-size:.62rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem">Ward Terminal</div>
+    <div class="gate-title">Not Activated</div>
+    <p class="gate-sub">This terminal requires Ward In-Charge login to activate. Please login first.</p>
+    <a href="/" class="gate-btn">Ward In-Charge Login →</a>
   </div>
 </div>
+
 <nav>
-  <div class="nav-logo">◆ BlockVote</div>
+  <div class="nav-logo"><div class="dot"></div>BlockVote</div>
   <div class="nav-center">
     <div class="ward-badge" id="wardLabel">Ward —</div>
     <div class="wic-name" id="wicLabel">—</div>
@@ -190,334 +193,423 @@ canvas.ch{display:none}
     <button class="btn-logout" onclick="logout()">Logout</button>
   </div>
 </nav>
+
 <div id="electionBanner" class="election-banner">
-  <div class="eb-left"><div class="eb-live">● Active Election</div><div class="eb-name" id="bannerElecName">—</div></div>
+  <div class="eb-left">
+    <div class="eb-live">● Active Election</div>
+    <div class="eb-name" id="bannerElecName">—</div>
+  </div>
   <div class="eb-end" id="bannerElecEnd">Ends: —</div>
 </div>
-<div id="noElectionBanner" class="no-election-banner">
-  ⚠️ No active election for this ward right now.
+<div id="noElectionBanner" class="no-election-banner" style="display:none">
+  No active election in this ward right now. Voters cannot cast votes.
 </div>
+
 <div class="layout">
   <div class="main">
 
-    <!-- No election panel -->
+    <!-- Panel 0: No election -->
     <div class="panel show" id="panelNoElection">
-      <div class="no-el">
+      <div class="no-election-state">
         <div class="ne-icon">🗳️</div>
         <div class="ne-title">No Active Election</div>
-        <p class="ne-sub">No active election for this ward right now.<br>Contact your Election Officer to initialize one.</p>
-        <button onclick="location.reload()" style="margin-top:1.2rem;padding:.65rem 1.5rem;background:transparent;border:1px solid var(--border2);border-radius:8px;color:var(--muted);font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s">↻ Check Again</button>
+        <p class="ne-sub">There is currently no active election for this ward.<br>Contact your Election Officer to initialize one.<br><br>This page checks automatically every 60 seconds.</p>
+        <button onclick="location.reload()" style="margin-top:1.2rem;padding:.6rem 1.4rem;background:transparent;border:1px solid var(--border2);border-radius:4px;color:var(--muted);font-size:.72rem;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;letter-spacing:.06em;text-transform:uppercase;transition:.2s" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)'">↻ Check Now</button>
       </div>
     </div>
 
-    <!-- Voter login panel -->
-    <div class="panel" id="panelLogin">
-      <div class="section-title">Voter Login</div>
-      <p class="section-sub">Enter your Voter ID and capture your face to proceed to voting.</p>
+    <!-- Panel 1: Voter ID + Face scan -->
+    <div class="panel" id="panelVerify">
+      <div class="step-title">Voter Authentication</div>
+      <p class="step-sub">Enter Voter ID and scan face to proceed to voting</p>
+
       <div class="field">
         <label>Voter ID</label>
-        <input type="text" id="voterIdInput" placeholder="e.g. TN2024001" autocomplete="off" autofocus>
+        <input type="text" id="voterIdInput" placeholder="e.g. TN2024001" autocomplete="off" autofocus onkeydown="if(event.key==='Enter'&&!document.getElementById('btnVerify').disabled)verifyVoter()">
       </div>
-      <!-- Face Capture Card -->
-      <div class="face-capture-card">
-        <div class="fcc-header">
-          <div class="fcc-title">📷 Face Capture</div>
-          <span class="fcc-mode" id="fzMode">Demo Mode</span>
+
+      <div class="face-zone">
+        <div class="fz-header">
+          <span class="fz-title">Face Biometric</span>
+          <span class="fz-mode" id="fzMode">Loading...</span>
         </div>
-        <div class="cam-viewport" id="camViewport">
-          <div class="cam-placeholder" id="camPlaceholder">
-            <div class="cam-ph-icon">📷</div>
-            <div class="cam-ph-text">Click "Open Camera" to begin<br>face capture</div>
-            <div class="cam-ph-hint">Allow camera access when prompted</div>
+        <div class="cam-wrap">
+          <video id="camFeed" autoplay playsinline muted></video>
+          <img id="previewImg" class="preview-img" alt="Captured">
+          <div class="face-oval-wrap" id="faceGuide">
+            <div class="face-oval"></div>
           </div>
-          <video class="cam-video" id="camFeed" autoplay playsinline muted></video>
-          <img class="cam-preview-img" id="camPreview" alt="">
-          <div class="cap-overlay" id="capOverlay">
-            <div class="cap-ok-ring">
-              <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#4ade80" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-            </div>
-            <div class="cap-ok-text">Face Captured ✓</div>
+          <div class="cam-ph" id="camPh">
+            <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="var(--muted2)" stroke-width="1.3"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/></svg>
+            <p>Click "Open Camera" to start</p>
           </div>
-          <div class="cam-overlay">
-            <div class="oval-wrap" id="ovalWrap">
-              <div class="face-oval" id="faceOval">
-                <div class="corner tl"></div><div class="corner tr"></div>
-                <div class="corner bl"></div><div class="corner br"></div>
-                <div class="oval-hint">Align your face here</div>
-              </div>
-            </div>
-          </div>
-          <canvas id="capCanvas" class="ch" width="640" height="480"></canvas>
+          <div class="cap-badge" id="capBadge" style="display:none">✓ Captured</div>
+          <canvas id="capCanvas" class="canvas-h" width="640" height="480"></canvas>
         </div>
-        <div class="face-btns">
-          <button class="btn-f" id="btnOpen" onclick="openCam()">📹 Open Camera</button>
-          <button class="btn-f pri" id="btnCap" onclick="captureFace()" disabled>📸 Capture Face</button>
-          <button class="btn-f" id="btnRetake" onclick="retake()" style="display:none">↺ Retake</button>
+        <div class="fz-actions">
+          <button class="btn-cam" id="btnOpen" onclick="openCam()">Open Camera</button>
+          <button class="btn-cam pri" id="btnCapture" onclick="captureFace()" disabled>Capture Face</button>
+          <button class="btn-cam" id="btnRetake" onclick="retake()" style="display:none">Retake</button>
         </div>
-        <div class="face-status" id="fzStatus"><span class="fsdot"></span><span>Open camera and position your face in the oval</span></div>
-        <div class="face-tips">
-          <div class="face-tip">💡 Good lighting</div>
-          <div class="face-tip">👁️ Look straight ahead</div>
-          <div class="face-tip">📏 Arm's length away</div>
-          <div class="face-tip">🚫 No mask or hat</div>
-        </div>
+        <div class="fz-status" id="fzStatus"><span class="sdot"></span><span>Position face inside the oval, then capture</span></div>
       </div>
-      <button class="btn-primary" id="btnLogin" onclick="loginVoter()" disabled>Continue to Voting →</button>
-      <div class="alert" id="loginAlert"></div>
+
+      <button class="btn-primary" id="btnVerify" onclick="verifyVoter()" disabled>Verify &amp; Continue →</button>
+      <div class="alert" id="verifyAlert"></div>
     </div>
 
-    <!-- Vote panel -->
+    <!-- Panel 2: Vote casting -->
     <div class="panel" id="panelVote">
       <div class="voter-card">
-        <div class="vc-top">
-          <div class="v-badge">✓ Voter Identified</div>
-          <div class="v-id" id="voterIdShow">—</div>
+        <div class="voter-card-top">
+          <div class="voter-verified-badge">✓ Identity Verified</div>
+          <div class="voter-id-show" id="voterIdShow">—</div>
         </div>
-        <div class="v-name" id="voterNameShow">—</div>
-        <div class="v-meta">
-          <div class="vm-i"><div class="vm-l">Ward</div><div class="vm-v" id="voterWardShow">—</div></div>
-          <div class="vm-i"><div class="vm-l">District</div><div class="vm-v" id="voterDistShow">—</div></div>
-          <div class="vm-i"><div class="vm-l">State</div><div class="vm-v" id="voterStateShow">—</div></div>
-          <div class="vm-i"><div class="vm-l">Blockchain ID</div><div class="vm-v" id="voterBidShow" style="font-size:.72rem">—</div></div>
+        <div class="voter-name" id="voterNameShow">—</div>
+        <div class="voter-meta">
+          <div class="vm-item"><div class="vm-label">Ward</div><div class="vm-val" id="voterWardShow">—</div></div>
+          <div class="vm-item"><div class="vm-label">Blockchain ID</div><div class="vm-val" id="voterBidShow">—</div></div>
         </div>
       </div>
-      <div class="elec-card">
-        <div class="elec-icon">🗳️</div>
-        <div>
-          <div class="elec-lbl">Active Election</div>
-          <div class="elec-name" id="elecNameShow">—</div>
-          <div class="elec-end" id="elecEndShow">—</div>
+
+      <div class="election-card">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        <div class="ec-info">
+          <div class="ec-label">Active Election</div>
+          <div class="ec-name" id="elecNameShow">—</div>
+          <div class="ec-end" id="elecEndShow">—</div>
         </div>
       </div>
-      <div class="cands-hdr">Select Your Candidate</div>
+
+      <div class="step-title">Select Your Candidate</div>
+      <p class="step-sub" style="margin-bottom:1rem">Tap a candidate to select, then confirm your vote</p>
       <div class="candidates-grid" id="candidatesGrid"></div>
-      <button class="btn-primary" id="btnCastVote" onclick="castVote()" disabled>🗳 Confirm Vote →</button>
+
+      <button class="btn-primary" id="btnCastVote" onclick="castVote()" disabled>Confirm Vote →</button>
       <button class="btn-ghost" onclick="resetTerminal()">← Cancel / New Voter</button>
       <div class="alert" id="voteAlert"></div>
     </div>
 
-    <!-- Success panel -->
+    <!-- Panel 3: Success -->
     <div class="panel" id="panelSuccess">
-      <div class="success-card">
-        <div class="s-icon">✅</div>
-        <div class="s-title">Vote Recorded!</div>
-        <p class="s-sub">Your vote has been securely recorded on the blockchain.<br>Thank you for participating in democracy.</p>
-        <div class="mode-badge" id="modeShow"></div>
+      <div class="vote-success">
+        <div class="success-icon">
+          <svg width="30" height="30" fill="none" viewBox="0 0 24 24" stroke="var(--green)" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <h2>Vote Recorded</h2>
+        <p>Your vote has been securely recorded on the blockchain.<br>Thank you for participating.</p>
         <div class="tx-box">
-          <div class="tx-lbl">Transaction Hash</div>
+          <div class="tx-label">Transaction Hash</div>
           <div id="txHashShow">—</div>
         </div>
+        <div style="margin-bottom:1.2rem" id="modeShow"></div>
         <button class="btn-primary" onclick="resetTerminal()">Next Voter →</button>
       </div>
     </div>
 
-  </div><!-- /main -->
+  </div>
 
-  <!-- Sidebar -->
+  <!-- Sidebar: live stats -->
   <div class="sidebar">
-    <div class="sb-lbl">Ward Statistics</div>
-    <div class="sb-ward" id="sideWardName">—</div>
-    <div class="stat-cards">
-      <div class="stat-card"><div class="stat-num g" id="statVoted">—</div><div class="stat-lbl">Voted</div></div>
-      <div class="stat-card"><div class="stat-num" id="statTotal">—</div><div class="stat-lbl">Registered</div></div>
+    <div class="sb-label">Ward Stats</div>
+    <div class="sb-title" id="sideWardName">—</div>
+    <div class="stat-row">
+      <div>
+        <div class="stat-big gold" id="statVoted">—</div>
+        <div style="font-size:.65rem;color:var(--muted);font-family:'JetBrains Mono',monospace">Voted</div>
+      </div>
+      <div style="text-align:right">
+        <div class="stat-big" id="statTotal">—</div>
+        <div class="stat-label">Registered</div>
+      </div>
     </div>
-    <div class="prog-wrap"><div class="prog-fill" id="progBar" style="width:0%"></div></div>
-    <div class="prog-pct" id="statPct">0% participation</div>
-    <div class="log-hdr">Recent Activity</div>
-    <div id="logList"><div style="font-size:.75rem;color:var(--muted);padding:.5rem 0">No activity yet.</div></div>
+    <div class="prog-outer"><div class="prog-inner" id="progBar" style="width:0%"></div></div>
+    <div style="font-size:.65rem;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:1.5rem" id="statPct">0% participation</div>
+    <div class="sb-divider"></div>
+    <div class="log-title">Recent Activity</div>
+    <div class="log-list" id="logList">
+      <div style="font-size:.7rem;color:var(--muted2);font-family:'JetBrains Mono',monospace;padding:.5rem 0">No activity yet.</div>
+    </div>
   </div>
 </div>
 
 <script>
-let wic=null,stream=null,capturedImage=null,currentVoterData=null,selectedCandidateId=null,statsInterval=null;
+let wic = null;
+let stream = null;
+let capturedImage = null;
+let currentVoterData = null;
+let selectedCandidateId = null;
+let statsInterval = null;
 
+// ── Init ───────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  const stored = sessionStorage.getItem('wic');
+  if (!stored) { document.getElementById('authGate').style.display = 'flex'; return; }
+  wic = JSON.parse(stored);
 
-// ── WIC Auth helper ────────────────────────────────────────────────────────
-function wicFetch(url, opts={}) {
-  const stored = sessionStorage.getItem("wic");
-  const token = stored ? (JSON.parse(stored).token || "") : "";
-  opts.credentials = "include";
-  opts.headers = Object.assign({"X-WIC-Token": token}, opts.headers || {});
-  return fetch(url, opts);
-}
+  // Verify session is still valid
+  try {
+    const r = await fetch('/api/wic/status', {credentials: 'include'});
+    const d = await r.json();
+    if (!d.logged_in) { sessionStorage.removeItem('wic'); document.getElementById('authGate').style.display = 'flex'; return; }
+  } catch(e) {}
 
-window.addEventListener("DOMContentLoaded",async()=>{
-  const stored=sessionStorage.getItem("wic");
-  if(!stored){document.getElementById("authGate").style.display="flex";return;}
-  wic=JSON.parse(stored);
-  try{const r=await wicFetch("/api/wic/status");const d=await r.json();if(!d.logged_in){sessionStorage.removeItem("wic");document.getElementById("authGate").style.display="flex";return;}}catch(e){}
-  document.getElementById("authGate").style.display="none";
-  document.getElementById("wardLabel").textContent=wic.ward;
-  document.getElementById("wicLabel").textContent=wic.name;
-  document.getElementById("sideWardName").textContent=wic.ward;
-  if(wic.election_active&&wic.active_election){
-    document.getElementById("electionBanner").style.display="flex";
-    document.getElementById("bannerElecName").textContent=wic.active_election;
-    showPanel("panelLogin");
-  }else{
-    document.getElementById("noElectionBanner").style.display="block";
-    showPanel("panelNoElection");
+  document.getElementById('authGate').style.display = 'none';
+  document.getElementById('wardLabel').textContent = 'Ward: ' + wic.ward;
+  document.getElementById('wicLabel').textContent = wic.name;
+  document.getElementById('sideWardName').textContent = wic.ward;
+
+  // Show election banner
+  if (wic.election_active && wic.active_election) {
+    document.getElementById('electionBanner').style.display = 'flex';
+    document.getElementById('bannerElecName').textContent = wic.active_election;
+    showPanel('panelVerify');
+  } else {
+    document.getElementById('noElectionBanner').style.display = 'block';
+    showPanel('panelNoElection');
   }
-  try{const b=await fetch("/api/biometric/status");const bd=await b.json();document.getElementById("fzMode").textContent=bd.mode==="FACE_RECOGNITION"?"🟢 Real Face ID":"🟡 Demo Mode";}catch(e){}
-  loadStats();statsInterval=setInterval(loadStats,8000);setInterval(updateClock,1000);updateClock();
+
+  // Biometric mode
+  try {
+    const b = await fetch('/api/biometric/status');
+    const bd = await b.json();
+    document.getElementById('fzMode').textContent = bd.mode === 'FACE_RECOGNITION' ? '🟢 Real Face ID' : '🟡 Demo Mode';
+  } catch(e) {}
+
+  // Load stats
+  loadStats();
+  statsInterval = setInterval(loadStats, 8000);
+  // Poll every 60s for a new election becoming active (in case WIC logged in before election window)
+  setInterval(checkElectionStatus, 60000);
+  setInterval(updateClock, 1000); updateClock();
 });
 
 function updateClock(){
-  const ist=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Kolkata"}));
-  document.getElementById("clock").textContent=ist.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:true})+" IST";
+  const ist = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kolkata'}));
+  document.getElementById('clock').textContent =
+    ist.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true}) + ' IST';
+}
+
+async function checkElectionStatus(){
+  // Only relevant if currently showing no-election panel
+  const noElPanel = document.getElementById('panelNoElection');
+  if (!noElPanel.classList.contains('show')) return;
+  try {
+    const r = await fetch('/api/wic/stats', {credentials:'include'});
+    const d = await r.json();
+    if (!d.success) return;
+    // Re-login to refresh election state
+    const s = await fetch('/api/wic/status', {credentials:'include'});
+    const sd = await s.json();
+    if (!sd.logged_in) { logout(); return; }
+    // Check via stats if there's now an active election
+    const tr = await fetch('/api/time');
+    const td = await tr.json();
+    // Simple: reload wic session from server — if election became active, reflect it
+  } catch(e) {}
 }
 
 async function loadStats(){
-  try{
-    const r=await wicFetch("/api/wic/stats");const d=await r.json();
-    if(!d.success)return;
-    document.getElementById("statVoted").textContent=d.voted;
-    document.getElementById("statTotal").textContent=d.total;
-    document.getElementById("statPct").textContent=d.pct+"% participation";
-    document.getElementById("progBar").style.width=d.pct+"%";
+  try {
+    const r = await fetch('/api/wic/stats', {credentials:'include'});
+    const d = await r.json();
+    if (!d.success) return;
+    document.getElementById('statVoted').textContent = d.voted;
+    document.getElementById('statTotal').textContent = d.total;
+    document.getElementById('statPct').textContent = d.pct + '% participation';
+    document.getElementById('progBar').style.width = d.pct + '%';
     renderLog(d.log);
-  }catch(e){}
+  } catch(e) {}
 }
 
 function renderLog(log){
-  const el=document.getElementById("logList");
-  if(!log||!log.length){el.innerHTML="<div style=\"font-size:.75rem;color:var(--muted);padding:.5rem 0\">No activity yet.</div>";return;}
-  el.innerHTML=log.map(l=>`<div class="log-item"><div class="log-dot ${l.action==="VOTED"?"voted":""}"></div><div><div class="log-name">${l.name}</div><div class="log-meta">${l.action} · ${(l.occurred_at||"").replace("T"," ")}</div></div></div>`).join("");
+  const el = document.getElementById('logList');
+  if (!log || !log.length){ el.innerHTML = '<div style="font-size:.7rem;color:var(--muted2);font-family:JetBrains Mono,monospace;padding:.5rem 0">No activity yet.</div>'; return; }
+  el.innerHTML = log.map(l => `
+    <div class="log-item">
+      <div class="log-dot ${l.action==='VOTED'?'voted':'reg'}"></div>
+      <div>
+        <div class="log-name">${l.name}</div>
+        <div class="log-action">${l.action}</div>
+        <div class="log-time">${l.occurred_at ? l.occurred_at.replace('T',' ') : ''}</div>
+      </div>
+    </div>`).join('');
 }
 
-function showPanel(id){document.querySelectorAll(".panel").forEach(p=>p.classList.remove("show"));document.getElementById(id).classList.add("show");}
+// ── Panel ─────────────────────────────────────────────────────────────────
+function showPanel(id){
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('show'));
+  document.getElementById(id).classList.add('show');
+}
 
+// ── Camera ────────────────────────────────────────────────────────────────
 async function openCam(){
-  try{
-    stream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},facingMode:"user"}});
-    const v=document.getElementById("camFeed");v.srcObject=stream;v.classList.add("on");
-    document.getElementById("camViewport").classList.add("live");
-    document.getElementById("camPlaceholder").style.display="none";
-    document.getElementById("ovalWrap").classList.add("on");
-    document.getElementById("faceOval").classList.add("scanning");
-    document.getElementById("btnCap").disabled=false;
-    document.getElementById("btnOpen").disabled=true;
-    setFS("Camera active — center your face in the oval","");
-  }catch(e){setFS("Camera error: "+e.message+". Allow camera access.","err");}
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:'user'}});
+    const v = document.getElementById('camFeed');
+    v.srcObject = stream; v.classList.add('on');
+    document.getElementById('camPh').style.display = 'none';
+    document.getElementById('faceGuide').classList.add('on');
+    document.getElementById('btnCapture').disabled = false;
+    document.getElementById('btnOpen').disabled = true;
+    setFzStatus('Camera active — align face in oval', '');
+  } catch(e){ setFzStatus('Camera error: ' + e.message, 'err'); }
 }
 
 function captureFace(){
-  const v=document.getElementById("camFeed");
-  const canvas=document.getElementById("capCanvas");
-  canvas.getContext("2d").drawImage(v,0,0,640,480);
-  capturedImage=canvas.toDataURL("image/jpeg",.85).split(",")[1];
-  const prev=document.getElementById("camPreview");
-  prev.src="data:image/jpeg;base64,"+capturedImage;prev.classList.add("on");
-  v.classList.remove("on");
-  document.getElementById("ovalWrap").classList.remove("on");
-  document.getElementById("capOverlay").classList.add("on");
-  document.getElementById("btnCap").style.display="none";
-  document.getElementById("btnRetake").style.display="block";
-  document.getElementById("btnLogin").disabled=false;
-  setFS("Face captured! Click Continue to Voting.","ok");
+  const v = document.getElementById('camFeed');
+  const canvas = document.getElementById('capCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+  capturedImage = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+  const img = document.getElementById('previewImg');
+  img.src = 'data:image/jpeg;base64,' + capturedImage;
+  img.classList.add('on');
+  v.classList.remove('on');
+  document.getElementById('faceGuide').classList.remove('on');
+  document.getElementById('faceGuide').classList.add('ok');
+  document.getElementById('capBadge').style.display = 'block';
+  document.getElementById('btnCapture').style.display = 'none';
+  document.getElementById('btnRetake').style.display = 'block';
+  document.getElementById('btnVerify').disabled = false;
+  setFzStatus('Face captured!', 'ok');
   closeStream();
 }
 
 function retake(){
-  capturedImage=null;
-  document.getElementById("camPreview").classList.remove("on");
-  document.getElementById("camFeed").classList.remove("on");
-  document.getElementById("capOverlay").classList.remove("on");
-  document.getElementById("ovalWrap").classList.remove("on");
-  document.getElementById("faceOval").classList.remove("scanning");
-  document.getElementById("camViewport").classList.remove("live");
-  document.getElementById("camPlaceholder").style.display="flex";
-  document.getElementById("btnCap").style.display="block";document.getElementById("btnCap").disabled=true;
-  document.getElementById("btnRetake").style.display="none";
-  document.getElementById("btnLogin").disabled=true;
-  document.getElementById("btnOpen").disabled=false;
-  setFS("Open camera and position your face in the oval","");
+  capturedImage = null;
+  document.getElementById('previewImg').classList.remove('on');
+  document.getElementById('camFeed').classList.remove('on');
+  document.getElementById('faceGuide').classList.remove('on','ok');
+  document.getElementById('capBadge').style.display = 'none';
+  document.getElementById('btnCapture').style.display = 'block';
+  document.getElementById('btnRetake').style.display = 'none';
+  document.getElementById('btnVerify').disabled = true;
+  document.getElementById('btnOpen').disabled = false;
+  setFzStatus('Click "Open Camera" to retry', '');
 }
 
-function closeStream(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}}
-function setFS(msg,cls){
-  const el=document.getElementById("fzStatus");
-  el.innerHTML=`<span class="fsdot"></span><span>${msg}</span>`;
-  el.className="face-status"+(cls?" "+cls:"");
+function closeStream(){ if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; } }
+function setFzStatus(msg, cls){
+  const el = document.getElementById('fzStatus');
+  el.innerHTML = `<span class="sdot"></span><span>${msg}</span>`;
+  el.className = 'fz-status' + (cls ? ' ' + cls : '');
 }
 
-async function loginVoter(){
-  const voterId=document.getElementById("voterIdInput").value.trim();
-  const a=document.getElementById("loginAlert");a.className="alert";
-  if(!voterId){a.textContent="Please enter your Voter ID.";a.className="alert err";return;}
-  if(!capturedImage){a.textContent="Please capture your face first.";a.className="alert err";return;}
-  const btn=document.getElementById("btnLogin");btn.disabled=true;btn.textContent="Loading...";
-  try{
-    const r=await wicFetch("/api/voter/verify",{
-      method:"POST",credentials:"include",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({voter_id:voterId,face_image:capturedImage})
+// ── Verify Voter ──────────────────────────────────────────────────────────
+async function verifyVoter(){
+  const voterId = document.getElementById('voterIdInput').value.trim();
+  const a = document.getElementById('verifyAlert');
+  a.className = 'alert';
+  if (!voterId){ a.textContent = 'Please enter a Voter ID.'; a.className = 'alert err'; return; }
+  if (!capturedImage){ a.textContent = 'Please capture your face first.'; a.className = 'alert err'; return; }
+  const btn = document.getElementById('btnVerify');
+  btn.disabled = true; btn.textContent = 'Verifying...';
+  try {
+    const r = await fetch('/api/voter/verify', {
+      method: 'POST', credentials: 'include',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({voter_id: voterId, face_image: capturedImage})
     });
-    const d=await r.json();
-    if(d.success){currentVoterData=d;populateVotePanel(d);showPanel("panelVote");}
-    else{a.textContent=d.message;a.className="alert err";btn.disabled=false;btn.textContent="Continue to Voting →";}
-  }catch(e){a.textContent="Server error: "+e.message;a.className="alert err";btn.disabled=false;btn.textContent="Continue to Voting →";}
+    const d = await r.json();
+    if (d.success){
+      currentVoterData = d;
+      populateVotePanel(d);
+      showPanel('panelVote');
+    } else {
+      a.textContent = d.message; a.className = 'alert err';
+      btn.disabled = false; btn.textContent = 'Verify & Continue →';
+    }
+  } catch(e){
+    a.textContent = 'Server error: ' + e.message; a.className = 'alert err';
+    btn.disabled = false; btn.textContent = 'Verify & Continue →';
+  }
 }
 
 function populateVotePanel(d){
-  document.getElementById("voterIdShow").textContent=d.voter.voter_id;
-  document.getElementById("voterNameShow").textContent=d.voter.name;
-  document.getElementById("voterWardShow").textContent=d.voter.ward||"—";
-  document.getElementById("voterDistShow").textContent=d.voter.district||"—";
-  document.getElementById("voterStateShow").textContent=d.voter.state||"—";
-  document.getElementById("voterBidShow").textContent=d.voter.blockchain_id||"—";
-  document.getElementById("elecNameShow").textContent=d.election?d.election.name:"—";
-  document.getElementById("elecEndShow").textContent=d.election?"Ends: "+(d.election.election_end||"").replace("T"," ")+" IST":"";
-  selectedCandidateId=null;
-  document.getElementById("btnCastVote").disabled=true;
-  const grid=document.getElementById("candidatesGrid");
-  const em=["🔵","🔴","🟢","🟡","🟠","🟣","⚪","🟤"];
-  if(!d.candidates||!d.candidates.length){grid.innerHTML="<div style=\"color:var(--muted);font-size:.85rem;padding:1rem;grid-column:1/-1\">No candidates added yet.</div>";return;}
-  grid.innerHTML=d.candidates.map((c,i)=>`<div class="cand-card" id="cand_${c.id}" onclick="selCand(${c.id},this)"><div class="cand-sym">${c.symbol||em[i%em.length]}</div><div class="cand-nm">${c.name}</div><div class="cand-pt">${c.party}</div><div class="cand-chk"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div></div>`).join("");
+  document.getElementById('voterIdShow').textContent   = d.voter.voter_id;
+  document.getElementById('voterNameShow').textContent = d.voter.name;
+  document.getElementById('voterWardShow').textContent = d.voter.ward;
+  document.getElementById('voterBidShow').textContent  = d.voter.blockchain_id;
+  document.getElementById('elecNameShow').textContent  = d.election.name;
+  document.getElementById('elecEndShow').textContent   = 'Ends: ' + d.election.election_end.replace('T',' ') + ' IST';
+
+  selectedCandidateId = null;
+  document.getElementById('btnCastVote').disabled = true;
+
+  const grid = document.getElementById('candidatesGrid');
+  grid.innerHTML = d.candidates.map(c => `
+    <div class="cand-card" id="cand_${c.id}" onclick="selectCandidate(${c.id})">
+      <div class="cand-symbol">${c.symbol || '🗳️'}</div>
+      <div class="cand-name">${c.name}</div>
+      <div class="cand-party">${c.party}</div>
+    </div>`).join('');
 }
 
-function selCand(id,el){
-  selectedCandidateId=id;
-  document.querySelectorAll(".cand-card").forEach(c=>c.classList.remove("selected"));
-  el.classList.add("selected");
-  document.getElementById("btnCastVote").disabled=false;
+function selectCandidate(id){
+  selectedCandidateId = id;
+  document.querySelectorAll('.cand-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('cand_' + id).classList.add('selected');
+  document.getElementById('btnCastVote').disabled = false;
 }
 
+// ── Cast Vote ─────────────────────────────────────────────────────────────
 async function castVote(){
-  if(!selectedCandidateId||!currentVoterData)return;
-  if(!confirm("Confirm your vote? This cannot be undone."))return;
-  const btn=document.getElementById("btnCastVote");btn.disabled=true;btn.textContent="Recording...";
-  const a=document.getElementById("voteAlert");a.className="alert";
-  try{
-    const r=await wicFetch("/api/voter/vote",{
-      method:"POST",credentials:"include",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({voter_id:currentVoterData.voter.voter_id,candidate_id:selectedCandidateId,election_id:currentVoterData.election.id})
+  if (!selectedCandidateId || !currentVoterData) return;
+  const btn = document.getElementById('btnCastVote');
+  btn.disabled = true; btn.textContent = 'Recording vote...';
+  const a = document.getElementById('voteAlert'); a.className = 'alert';
+  try {
+    const r = await fetch('/api/voter/vote', {
+      method: 'POST', credentials: 'include',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        voter_id:     currentVoterData.voter.voter_id,
+        candidate_id: selectedCandidateId,
+        election_id:  currentVoterData.election.id
+      })
     });
-    const d=await r.json();
-    if(d.success){
-      document.getElementById("txHashShow").textContent=d.transaction_hash;
-      const mb=document.getElementById("modeShow");mb.textContent=d.blockchain_mode;
-      mb.className="mode-badge "+(d.blockchain_mode==="BLOCKCHAIN"?"bc":"sim");
-      showPanel("panelSuccess");loadStats();
-    }else{a.textContent=d.message;a.className="alert err";btn.disabled=false;btn.textContent="🗳 Confirm Vote →";}
-  }catch(e){a.textContent="Error: "+e.message;a.className="alert err";btn.disabled=false;btn.textContent="🗳 Confirm Vote →";}
+    const d = await r.json();
+    if (d.success){
+      document.getElementById('txHashShow').textContent = d.transaction_hash;
+      const modeEl = document.getElementById('modeShow');
+      modeEl.innerHTML = `<span class="mode-badge ${d.blockchain_mode==='BLOCKCHAIN'?'bc':'sim'}">${d.blockchain_mode}</span>`;
+      showPanel('panelSuccess');
+      loadStats();
+    } else {
+      a.textContent = d.message; a.className = 'alert err';
+      btn.disabled = false; btn.textContent = 'Confirm Vote →';
+    }
+  } catch(e){
+    a.textContent = 'Error: ' + e.message; a.className = 'alert err';
+    btn.disabled = false; btn.textContent = 'Confirm Vote →';
+  }
 }
 
+// ── Reset terminal for next voter ─────────────────────────────────────────
 function resetTerminal(){
-  closeStream();capturedImage=null;currentVoterData=null;selectedCandidateId=null;
-  document.getElementById("voterIdInput").value="";retake();
-  document.getElementById("loginAlert").className="alert";
-  document.getElementById("voteAlert").className="alert";
-  document.getElementById("btnLogin").disabled=true;
-  document.getElementById("btnLogin").textContent="Continue to Voting →";
-  if(wic&&wic.election_active)showPanel("panelLogin");else showPanel("panelNoElection");
+  closeStream();
+  capturedImage = null; currentVoterData = null; selectedCandidateId = null;
+  document.getElementById('voterIdInput').value = '';
+  retake();
+  document.getElementById('verifyAlert').className = 'alert';
+  document.getElementById('voteAlert').className = 'alert';
+  document.getElementById('btnVerify').disabled = true;
+  document.getElementById('btnVerify').textContent = 'Verify & Continue →';
+  if (wic && wic.election_active){
+    showPanel('panelVerify');
+  } else {
+    showPanel('panelNoElection');
+  }
 }
 
+// ── Logout ────────────────────────────────────────────────────────────────
 async function logout(){
-  if(statsInterval)clearInterval(statsInterval);closeStream();
-  await wicFetch("/api/wic/logout",{method:"POST"});
-  sessionStorage.removeItem("wic");location.href="/";
+  if (statsInterval) clearInterval(statsInterval);
+  closeStream();
+  await fetch('/api/wic/logout', {method:'POST', credentials:'include'});
+  sessionStorage.removeItem('wic');
+  location.href = '/';
 }
 </script>
 </body>
