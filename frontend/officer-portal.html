@@ -475,7 +475,10 @@ let hChart=null, dpChart=null, dpTimer=null, curDetailId=null;
 function _getToken(){ try{return JSON.parse(sessionStorage.getItem('officer')||'{}').token||'';}catch(e){return '';} }
 function authFetch(url, opts={}){
   opts.credentials='include';
-  opts.headers=Object.assign({'X-Auth-Token':_getToken(),'Content-Type':'application/json'},opts.headers||{});
+  const method=(opts.method||'GET').toUpperCase();
+  const baseHeaders={'X-Auth-Token':_getToken()};
+  if(method!=='GET'&&method!=='HEAD') baseHeaders['Content-Type']='application/json';
+  opts.headers=Object.assign(baseHeaders,opts.headers||{});
   return fetch(url, opts);
 }
 

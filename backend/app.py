@@ -23,13 +23,17 @@ IST = timezone(timedelta(hours=5, minutes=30))
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "bv-default-secret-change-me")
-# Fix session cookies for HTTPS deployment (Render/Railway)
+_is_deployed = bool(os.environ.get("RENDER") or os.environ.get("RAILWAY_ENVIRONMENT"))
+# SameSite=None requires Secure=True (HTTPS). On localhost use Lax so cookies work over http.
 app.config.update(
-    SESSION_COOKIE_SAMESITE="None",
-    SESSION_COOKIE_SECURE=bool(os.environ.get("RENDER") or os.environ.get("RAILWAY_ENVIRONMENT")),
+    SESSION_COOKIE_SAMESITE="None" if _is_deployed else "Lax",
+    SESSION_COOKIE_SECURE=_is_deployed,
     SESSION_COOKIE_HTTPONLY=True,
 )
-CORS(app, supports_credentials=True, origins="*")
+# credentials=True is incompatible with wildcard origin per CORS spec
+CORS(app, supports_credentials=True,
+     origins=["http://localhost:5000", "http://127.0.0.1:5000",
+               os.environ.get("FRONTEND_ORIGIN", "http://localhost:5000")])
 
 # ── Simple in-memory token store (works alongside sessions) ──────────────────
 _officer_tokens: dict = {}  # token -> officer_id
