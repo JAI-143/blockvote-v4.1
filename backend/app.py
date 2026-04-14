@@ -31,9 +31,7 @@ app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
 )
 # credentials=True is incompatible with wildcard origin per CORS spec
-CORS(app, supports_credentials=True,
-     origins=["http://localhost:5000", "http://127.0.0.1:5000",
-               os.environ.get("FRONTEND_ORIGIN", "http://localhost:5000")])
+CORS(app, supports_credentials=True, origins="*")
 
 # ── Simple in-memory token store (works alongside sessions) ──────────────────
 _officer_tokens: dict = {}  # token -> officer_id
