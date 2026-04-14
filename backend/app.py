@@ -22,8 +22,35 @@ from biometric.face_auth      import FaceAuth
 IST = timezone(timedelta(hours=5, minutes=30))
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", secrets.token_hex(32))
-CORS(app, supports_credentials=True)
+app.secret_key = os.environ.get("SECRET_KEY", "bv-default-secret-change-me")
+# Fix session cookies for HTTPS deployment (Render/Railway)
+app.config.update(
+    SESSION_COOKIE_SAMESITE="None",
+    SESSION_COOKIE_SECURE=bool(os.environ.get("RENDER") or os.environ.get("RAILWAY_ENVIRONMENT")),
+    SESSION_COOKIE_HTTPONLY=True,
+)
+CORS(app, supports_credentials=True, origins="*")
+
+# ── Simple in-memory token store (works alongside sessions) ──────────────────
+_officer_tokens: dict = {}  # token -> officer_id
+_wic_tokens: dict     = {}  # token -> wic data dict
+
+def _officer_id() -> str | None:
+    """Get logged-in officer from session OR Authorization header."""
+    t = request.headers.get("X-Auth-Token", "")
+    if t and _officer_tokens.get(t):
+        return _officer_tokens[t]
+    return session.get("officer_id")
+
+def _wic_data() -> dict | None:
+    """Get logged-in WIC from session OR Authorization header."""
+    t = request.headers.get("X-Auth-Token", "")
+    if t and _wic_tokens.get(t):
+        return _wic_tokens[t]
+    wid = session.get("wic_id")
+    if wid:
+        return {"wic_id": wid, "ward": session.get("wic_ward",""), "name": session.get("wic_name","")}
+    return None
 
 db         = Database(BASE_DIR)
 blockchain = BlockchainUtils(BASE_DIR)
@@ -38,7 +65,7 @@ FRONTEND = os.path.join(BASE_DIR, "frontend")
 def officer_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        if not session.get("officer_id"):
+        if not _officer_id():
             return jsonify({"success": False, "message": "Election officer login required."}), 401
         return f(*args, **kwargs)
     return decorated
@@ -46,7 +73,7 @@ def officer_required(f):
 def wic_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        if not session.get("wic_id"):
+        if not _wic_data():
             return jsonify({"success": False, "message": "Ward In-Charge login required."}), 401
         return f(*args, **kwargs)
     return decorated
@@ -81,9 +108,6 @@ def election_not_active(f):
 
 @app.route("/")
 def home():           return send_from_directory(FRONTEND, "index.html")
-
-@app.route("/register")
-def register_page():  return send_from_directory(FRONTEND, "register.html")
 
 # Ward In-Charge terminal (public entry point)
 @app.route("/ward-login")
@@ -131,9 +155,13 @@ def api_wic_login():
     session["wic_id"]   = wic_id
     session["wic_ward"] = wic["ward"]
     session["wic_name"] = wic["name"]
+    import time as _t
+    tok = hashlib.sha256(f"wic:{wic_id}:{_t.time()}".encode()).hexdigest()
+    _wic_tokens[tok] = {"wic_id": wic_id, "ward": wic["ward"], "name": wic["name"]}
     active, election    = db.is_election_active_now(wic["state"], wic["district"], wic["ward"])
     return jsonify({
         "success":          True,
+        "token":            tok,
         "wic_id":           wic["wic_id"],
         "name":             wic["name"],
         "ward":             wic["ward"],
@@ -146,6 +174,8 @@ def api_wic_login():
 
 @app.route("/api/wic/logout", methods=["POST"])
 def api_wic_logout():
+    t = request.headers.get("X-Auth-Token","")
+    if t in _wic_tokens: del _wic_tokens[t]
     session.pop("wic_id",   None)
     session.pop("wic_ward", None)
     session.pop("wic_name", None)
@@ -154,14 +184,15 @@ def api_wic_logout():
 @app.route("/api/wic/status")
 def api_wic_status():
     """Check current ward in-charge session."""
-    if not session.get("wic_id"):
+    wd = _wic_data()
+    if not wd:
         return jsonify({"success": False, "logged_in": False})
     return jsonify({
         "success":   True,
         "logged_in": True,
-        "wic_id":    session["wic_id"],
-        "ward":      session.get("wic_ward"),
-        "name":      session.get("wic_name"),
+        "wic_id":    wd["wic_id"],
+        "ward":      wd.get("ward"),
+        "name":      wd.get("name"),
     })
 
 # ── API: Voter face-login at ward terminal ────────────────────────────────────
@@ -174,7 +205,8 @@ def api_voter_verify():
     voter_id = d.get("voter_id", "").strip()
     face_b64 = d.get("face_image", "").strip()
     ip       = request.remote_addr
-    ward     = session.get("wic_ward", "")
+    wd = _wic_data()
+    ward = wd["ward"] if wd else ""
 
     fc = fraud.check(voter_id, ip)
     if not fc["allowed"]:
@@ -249,7 +281,8 @@ def api_voter_vote():
         return jsonify({"success": False, "message": "Already voted!"})
 
     # Ward must match session
-    if voter["ward"].lower() != session.get("wic_ward", "").lower():
+    _wd = _wic_data()
+    if voter["ward"].lower() != (_wd["ward"] if _wd else "").lower():
         return jsonify({"success": False, "message": "Ward mismatch."})
 
     active, election = db.is_election_active_now(voter["state"], voter["district"], voter["ward"])
@@ -278,7 +311,8 @@ def api_voter_vote():
 @app.route("/api/wic/stats")
 @wic_required
 def api_wic_stats():
-    ward = session.get("wic_ward", "")
+    wd = _wic_data()
+    ward = wd["ward"] if wd else ""
     voters = db.get_ward_voters(ward)
     total = len(voters)
     voted = sum(1 for v in voters if v["has_voted"])
@@ -296,57 +330,6 @@ def api_wic_stats():
     })
 
 # ── API: Election Officer Registration ────────────────────────────────────────
-
-
-# ── API: Public Voter Self-Registration ───────────────────────────────────────
-@app.route("/api/register/voter", methods=["POST"])
-def api_register_voter_public():
-    """Voter self-registers via the public registration page."""
-    d        = request.get_json() or {}
-    voter_id = d.get("voter_id", "").strip()
-    name     = d.get("name", "").strip()
-    dob      = d.get("dob", "").strip()
-    phone    = d.get("phone", "").strip()
-    state    = d.get("state", "").strip()
-    district = d.get("district", "").strip()
-    ward     = d.get("ward", "").strip()
-    face_b64 = d.get("face_image", "").strip()
-
-    if not all([voter_id, name, state, district, ward]):
-        return jsonify({"success": False, "message": "Voter ID, name, state, district and ward are required."})
-    if db.voter_exists(voter_id):
-        return jsonify({"success": False, "message": f"Voter ID '{voter_id}' is already registered."})
-    if not face_b64:
-        return jsonify({"success": False, "message": "Face image is required for biometric registration."})
-
-    fp = face.register(voter_id, face_b64)
-    if not fp["success"]:
-        return jsonify({"success": False, "message": fp["message"]})
-
-    blockchain_id = hashlib.sha256(
-        f"{voter_id}:{name}:{os.urandom(8).hex()}".encode()
-    ).hexdigest()
-
-    db.register_voter(voter_id, name, dob, phone, state, district, ward, fp["hash"], blockchain_id)
-
-    # Get elections for this voter location
-    elections = db.get_elections_for_voter(state, district, ward) if hasattr(db, "get_elections_for_voter") else []
-    election_info = []
-    for e in elections:
-        status = db.get_election_status(e) if hasattr(db, "get_election_status") else "UNKNOWN"
-        election_info.append({
-            "id": e["id"], "name": e["name"], "status": status,
-            "election_start": e.get("election_start",""),
-            "election_end":   e.get("election_end",""),
-        })
-
-    return jsonify({
-        "success":       True,
-        "message":       f"{name} registered successfully.",
-        "blockchain_id": blockchain_id[:24] + "...",
-        "face_mode":     fp["mode"],
-        "elections":     election_info,
-    })
 
 @app.route("/api/officer/register", methods=["POST"])
 def api_register_officer():
@@ -380,9 +363,13 @@ def api_officer_login():
     if not officer:
         return jsonify({"success": False, "message": "Invalid Officer ID or password."})
     session["officer_id"] = officer_id
+    import time as _t2
+    otok = hashlib.sha256(f"off:{officer_id}:{_t2.time()}".encode()).hexdigest()
+    _officer_tokens[otok] = officer_id
     active, active_election = db.is_any_election_active_now()
     return jsonify({
         "success":         True,
+        "token":           otok,
         "officer_id":      officer["officer_id"],
         "name":            officer["name"],
         "designation":     officer["designation"],
@@ -392,6 +379,8 @@ def api_officer_login():
 
 @app.route("/api/officer/logout", methods=["POST"])
 def api_officer_logout():
+    t = request.headers.get("X-Auth-Token","")
+    if t in _officer_tokens: del _officer_tokens[t]
     session.pop("officer_id", None)
     return jsonify({"success": True})
 
@@ -418,7 +407,7 @@ def api_create_wic():
     if len(password) < 6:
         return jsonify({"success": False, "message": "Password must be at least 6 characters."})
 
-    result = db.create_wic(wic_id, name, ward, district, state, password, session["officer_id"])
+    result = db.create_wic(wic_id, name, ward, district, state, password, _officer_id())
     return jsonify(result)
 
 @app.route("/api/officer/wic/<wic_id>", methods=["DELETE"])
@@ -579,7 +568,7 @@ def api_add_candidate():
         if not verify["success"]:
             return jsonify({"success": False, "message": f"Biometric failed: {verify['message']}"})
 
-    result = db.add_candidate(election_id, voter_id, voter["name"], party, symbol, session["officer_id"])
+    result = db.add_candidate(election_id, voter_id, voter["name"], party, symbol, _officer_id())
     return jsonify(result)
 
 # ── API: Officer — Analytics ──────────────────────────────────────────────────
