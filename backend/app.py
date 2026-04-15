@@ -31,7 +31,9 @@ app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
 )
 # credentials=True is incompatible with wildcard origin per CORS spec
-CORS(app, supports_credentials=True, origins="*")
+CORS(app, supports_credentials=True,
+     origins=["http://localhost:5000", "http://127.0.0.1:5000",
+               os.environ.get("FRONTEND_ORIGIN", "http://localhost:5000")])
 
 # ── Token store backed by DB so tokens survive server restarts ───────────────
 # Tokens table is created lazily in database.py init
@@ -119,8 +121,7 @@ def _post_init():
     except Exception:
         pass
 
-import threading as _threading
-_threading.Timer(1.0, _post_init).start()
+_post_init()  # create auth_tokens table synchronously at startup
 
 FRONTEND = os.path.join(BASE_DIR, "frontend")
 
@@ -740,7 +741,21 @@ def api_public_election_stats(election_id):
     if not stats:
         return jsonify({"success": False, "message": "Election not found."})
     # Public: no candidate vote counts, no voter identity
-    return jsonify({"success": True, **stats})
+    # Also include public voted log (name + time only, no voter ID, no candidate)
+    voted_log = []
+    try:
+        with db._conn() as c:
+            rows = c.execute(
+                """SELECT val.name, val.occurred_at
+                   FROM voter_activity_log val
+                   WHERE val.election_id=? AND val.action='VOTED'
+                   ORDER BY val.occurred_at DESC LIMIT 100""",
+                (election_id,)
+            ).fetchall()
+            voted_log = [{"name": r["name"], "occurred_at": r["occurred_at"]} for r in rows]
+    except Exception:
+        pass
+    return jsonify({"success": True, **stats, "voted_log": voted_log})
 
 # ── API: Officer — election detail with voter log ─────────────────────────────
 

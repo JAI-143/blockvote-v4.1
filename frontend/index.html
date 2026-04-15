@@ -95,6 +95,17 @@ select.fsel:disabled{opacity:.38;cursor:not-allowed}
 .chart-h{position:relative;height:190px}
 
 .info-note{font-size:.68rem;color:var(--muted);font-family:'Inter',sans-serif;line-height:1.7;padding:.8rem 1rem;border:1px solid var(--border);border-radius:4px;max-width:580px;background:var(--surface)}
+/* Activity list on stats page */
+.activity-box{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1.2rem 1.4rem;max-width:580px;margin-bottom:1.2rem}
+.activity-lbl{font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.9rem;font-family:'JetBrains Mono',monospace}
+.act-list{display:flex;flex-direction:column;gap:0;max-height:260px;overflow-y:auto}
+.act-row{display:flex;align-items:center;gap:.9rem;padding:.55rem 0;border-bottom:1px solid var(--border)}
+.act-row:last-child{border-bottom:none}
+.act-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0}
+.act-name{font-size:.76rem;font-weight:600;color:var(--text);flex:1}
+.act-time{font-size:.65rem;color:var(--muted);font-family:'JetBrains Mono',monospace;white-space:nowrap}
+.act-empty{font-size:.74rem;color:var(--muted);font-family:'JetBrains Mono',monospace;padding:.5rem 0}
+
 </style>
 </head>
 <body>
@@ -184,6 +195,11 @@ select.fsel:disabled{opacity:.38;cursor:not-allowed}
     </div>
 
     <div class="info-note" id="infoNote"></div>
+
+    <div class="activity-box" id="activityBox" style="display:none">
+      <div class="activity-lbl">Voters Who Voted — Name &amp; Time Only</div>
+      <div class="act-list" id="actList"><div class="act-empty">No votes cast yet.</div></div>
+    </div>
   </div>
 </div>
 
@@ -307,6 +323,22 @@ async function loadStats(){
 
     const notes={VOTING_ACTIVE:'Voting is live. Counts update every 10 seconds. Candidate results shown after polls close.',ELECTION_ENDED:'This election has ended. Visit the Officer Portal for detailed results.',REGISTRATION_OPEN:'Registration window is open. Voting has not started yet.'};
     document.getElementById('infoNote').textContent=notes[d.status]||'';
+
+    // Voter activity list (name + time only)
+    const actBox=document.getElementById('activityBox');
+    const actList=document.getElementById('actList');
+    if(d.voted_log&&d.voted_log.length){
+      actBox.style.display='block';
+      actList.innerHTML=d.voted_log.map(v=>`
+        <div class="act-row">
+          <div class="act-dot"></div>
+          <div class="act-name">${v.name}</div>
+          <div class="act-time">${(v.occurred_at||'').replace('T',' ').slice(0,16)} IST</div>
+        </div>`).join('');
+    } else if(d.status==='VOTING_ACTIVE'||d.status==='ELECTION_ENDED'){
+      actBox.style.display='block';
+      actList.innerHTML='<div class="act-empty">No votes recorded yet.</div>';
+    } else { actBox.style.display='none'; }
 
     const labels=d.hourly.map(h=>h.hour);
     const vals=d.hourly.map(h=>h.count);
