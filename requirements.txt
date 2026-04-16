@@ -4,12 +4,19 @@ requests==2.31.0
 numpy
 Pillow
 gunicorn
-web3==6.11.3
 
-# Blockchain (optional — app works in simulation mode without Ganache)
+# ── Optional: Blockchain (app runs in simulation mode without Ganache) ────────
 # web3==6.11.3
-# py-solc-x==2.1.1
 
-# face_recognition requires cmake + dlib which fail on most free cloud hosts.
-# The app automatically falls back to SIMULATION mode if not installed.
-# To enable real face recognition on a VPS: pip install cmake dlib face_recognition
+# ── Real Face Authentication — choose ONE option ──────────────────────────────
+#
+# Option A: face_recognition (dlib) — most accurate
+#   Requires C++ build tools.
+#   Linux/Mac: sudo apt install cmake libboost-all-dev && pip install cmake dlib face_recognition
+#   Windows:   Install Visual C++ Build Tools, then: pip install cmake dlib face_recognition
+#
+# Option B: DeepFace — easier install, no cmake needed
+#   pip install deepface tf-keras
+#
+# The app auto-detects which is installed and uses it.
+# If neither is installed, it runs in SIMULATION mode (always passes).
